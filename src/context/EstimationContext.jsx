@@ -1,14 +1,15 @@
-import { createContext, useContext, useReducer, useCallback } from 'react';
+import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import {
   complexityMultipliers,
   projectPhases,
   teamRoles
 } from '../data/d365Modules';
+import { useProjects } from './ProjectsContext';
 
 const EstimationContext = createContext(null);
 
-const initialState = {
+const getInitialState = () => ({
   projectInfo: {
     projectName: '',
     clientName: '',
@@ -30,7 +31,7 @@ const initialState = {
     phases: projectPhases.map(p => ({ ...p, enabled: true })),
     teamMembers: []
   }
-};
+});
 
 function estimationReducer(state, action) {
   switch (action.type) {
@@ -264,10 +265,10 @@ function estimationReducer(state, action) {
       };
 
     case 'RESET_ESTIMATION':
-      return initialState;
+      return getInitialState();
 
     case 'LOAD_ESTIMATION':
-      return action.payload;
+      return action.payload || getInitialState();
 
     default:
       return state;
@@ -275,7 +276,27 @@ function estimationReducer(state, action) {
 }
 
 export function EstimationProvider({ children }) {
-  const [state, dispatch] = useReducer(estimationReducer, initialState);
+  const [state, dispatch] = useReducer(estimationReducer, getInitialState());
+  const { currentProject, updateCurrentProject, currentProjectId } = useProjects();
+
+  // Load estimation from current project when project changes
+  useEffect(() => {
+    if (currentProject?.estimation) {
+      dispatch({ type: 'LOAD_ESTIMATION', payload: currentProject.estimation });
+    } else {
+      dispatch({ type: 'RESET_ESTIMATION' });
+    }
+  }, [currentProjectId]);
+
+  // Auto-save estimation to current project when state changes
+  useEffect(() => {
+    if (currentProjectId && state) {
+      const timeoutId = setTimeout(() => {
+        updateCurrentProject(state);
+      }, 500); // Debounce saves
+      return () => clearTimeout(timeoutId);
+    }
+  }, [state, currentProjectId, updateCurrentProject]);
 
   const calculateModuleHours = useCallback(() => {
     return state.selectedModules.reduce((total, module) => {

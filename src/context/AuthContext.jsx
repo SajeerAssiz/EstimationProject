@@ -1,0 +1,153 @@
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { PublicClientApplication, InteractionStatus } from '@azure/msal-browser';
+import { msalConfig, loginRequest, crmApiRequest } from '../config/authConfig';
+
+const AuthContext = createContext(null);
+
+// Initialize MSAL instance
+let msalInstance = null;
+
+try {
+  msalInstance = new PublicClientApplication(msalConfig);
+} catch (error) {
+  console.warn('MSAL initialization skipped - configure authConfig.js for Azure AD');
+}
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [msalReady, setMsalReady] = useState(false);
+
+  // Check if MSAL is properly configured
+  const isMsalConfigured = msalConfig.auth.clientId !== "YOUR_CLIENT_ID";
+
+  useEffect(() => {
+    const initializeMsal = async () => {
+      if (!msalInstance || !isMsalConfigured) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        await msalInstance.initialize();
+        setMsalReady(true);
+
+        // Handle redirect response
+        const response = await msalInstance.handleRedirectPromise();
+        if (response) {
+          setUser(response.account);
+          setIsAuthenticated(true);
+        } else {
+          // Check for existing accounts
+          const accounts = msalInstance.getAllAccounts();
+          if (accounts.length > 0) {
+            setUser(accounts[0]);
+            setIsAuthenticated(true);
+          }
+        }
+      } catch (err) {
+        console.error('MSAL initialization error:', err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeMsal();
+  }, [isMsalConfigured]);
+
+  const login = useCallback(async () => {
+    if (!msalInstance || !msalReady) {
+      setError('Authentication not configured. Please update authConfig.js');
+      return;
+    }
+
+    try {
+      setError(null);
+      const response = await msalInstance.loginPopup(loginRequest);
+      setUser(response.account);
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err.message);
+    }
+  }, [msalReady]);
+
+  const logout = useCallback(async () => {
+    if (!msalInstance || !msalReady) return;
+
+    try {
+      await msalInstance.logoutPopup();
+      setUser(null);
+      setIsAuthenticated(false);
+    } catch (err) {
+      console.error('Logout error:', err);
+      setError(err.message);
+    }
+  }, [msalReady]);
+
+  const getAccessToken = useCallback(async (scopes = loginRequest.scopes) => {
+    if (!msalInstance || !msalReady || !user) return null;
+
+    try {
+      const response = await msalInstance.acquireTokenSilent({
+        scopes,
+        account: user,
+      });
+      return response.accessToken;
+    } catch (err) {
+      // If silent acquisition fails, try popup
+      try {
+        const response = await msalInstance.acquireTokenPopup({ scopes });
+        return response.accessToken;
+      } catch (popupErr) {
+        console.error('Token acquisition error:', popupErr);
+        setError(popupErr.message);
+        return null;
+      }
+    }
+  }, [msalReady, user]);
+
+  const getCrmAccessToken = useCallback(async () => {
+    return getAccessToken(crmApiRequest.scopes);
+  }, [getAccessToken]);
+
+  // Demo mode for development without Azure AD
+  const loginDemo = useCallback(() => {
+    setUser({
+      username: 'demo@company.com',
+      name: 'Demo User',
+      localAccountId: 'demo-user-id',
+    });
+    setIsAuthenticated(true);
+  }, []);
+
+  const value = {
+    user,
+    isAuthenticated,
+    isLoading,
+    error,
+    isMsalConfigured,
+    login,
+    logout,
+    loginDemo,
+    getAccessToken,
+    getCrmAccessToken,
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
