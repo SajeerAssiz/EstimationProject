@@ -2165,3 +2165,188 @@ body {
   font-size: 0.85rem;
   color: var(--text-secondary);
 }
+
+/* Location Badges */
+.location-badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.badge-onsite {
+  background: #dff6dd;
+  color: #107c10;
+}
+
+.badge-offshore {
+  background: #deecf9;
+  color: #0078d4;
+}
+
+.badge-mixed {
+  background: #fff4ce;
+  color: #8a6d00;
+}
+
+/* Implementation Model */
+.implementation-model {
+  margin-bottom: 1rem;
+}
+
+.implementation-model label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.implementation-model select {
+  width: 100%;
+  padding: 0.625rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
+/* Role Groups */
+.add-team-member {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.role-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.role-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.375rem;
+}
+
+.role-group select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+/* Days Display */
+.days-value {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-left: 0.5rem;
+}
+
+.days-cell {
+  text-align: center;
+  font-weight: 500;
+}
+
+.section-summary .days {
+  font-weight: 600;
+  color: var(--success-color);
+}
+
+.section-summary .divider {
+  color: var(--border-color);
+}
+
+/* Resource Loading Matrix */
+.resource-loading-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.resource-loading-section h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.resource-matrix {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.resource-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  min-width: 600px;
+}
+
+.resource-table th {
+  text-align: center;
+  padding: 0.75rem 0.5rem;
+  background: var(--bg-color);
+  font-weight: 500;
+  color: var(--text-secondary);
+  border-bottom: 2px solid var(--border-color);
+  white-space: nowrap;
+}
+
+.resource-table th:first-child {
+  text-align: left;
+  padding-left: 1rem;
+}
+
+.resource-table td {
+  padding: 0.625rem 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.resource-table td:first-child {
+  text-align: left;
+  padding-left: 1rem;
+}
+
+.resource-table tbody tr:hover {
+  background: var(--bg-color);
+}
+
+.resource-table .resource-name {
+  font-weight: 500;
+}
+
+.resource-table .resource-count {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-left: 0.375rem;
+}
+
+.resource-table .total-cell {
+  background: var(--primary-light);
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.resource-table tfoot td {
+  background: var(--bg-color);
+  font-weight: 600;
+  border-top: 2px solid var(--border-color);
+}
+
+.resource-table tfoot .total-cell {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Rate input width */
+.rate-input {
+  width: 90px;
+}
+
+/* Team table improvements */
+.team-table .days-cell {
+  color: var(--primary-color);
+}
