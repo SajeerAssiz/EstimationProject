@@ -1,59 +1,136 @@
 // Azure AD / Windows AD Authentication Configuration
-// Update these values with your Azure AD tenant details
+//
+// SETUP OPTIONS:
+// 1. Use environment variables (recommended for production)
+// 2. Edit values directly below (for development)
+//
+// See SETUP_WINDOWS.md for detailed instructions
+
+// Get config from environment variables or use defaults
+const clientId = import.meta.env.VITE_AZURE_CLIENT_ID || "YOUR_CLIENT_ID";
+const tenantId = import.meta.env.VITE_AZURE_TENANT_ID || "YOUR_TENANT_ID";
+const crmOrgUrl = import.meta.env.VITE_CRM_ORG_URL || "https://YOUR_CRM_ORG.crm.dynamics.com";
+
+// Check if Azure AD is configured
+export const isAzureADConfigured = () => {
+  return clientId !== "YOUR_CLIENT_ID" && tenantId !== "YOUR_TENANT_ID";
+};
 
 export const msalConfig = {
   auth: {
-    // Replace with your Azure AD Application (client) ID
-    clientId: "YOUR_CLIENT_ID",
-    // Replace with your Azure AD tenant ID or use 'common' for multi-tenant
-    authority: "https://login.microsoftonline.com/YOUR_TENANT_ID",
-    // Redirect URI - update for production
+    // Azure AD Application (client) ID
+    // Get this from Azure Portal > App registrations > Your App > Overview
+    clientId: clientId,
+
+    // Azure AD Authority URL
+    // Format: https://login.microsoftonline.com/{tenant-id}
+    authority: `https://login.microsoftonline.com/${tenantId}`,
+
+    // Redirect URI - automatically uses current page URL
     redirectUri: window.location.origin,
     postLogoutRedirectUri: window.location.origin,
+
+    // Navigate to the original page after login
+    navigateToLoginRequestUrl: true,
   },
   cache: {
+    // Store auth tokens in localStorage (survives browser refresh)
     cacheLocation: "localStorage",
+    // Set to true if you have issues with IE11/Edge
     storeAuthStateInCookie: false,
+  },
+  system: {
+    // Logging configuration (enable for debugging)
+    loggerOptions: {
+      loggerCallback: (level, message, containsPii) => {
+        if (containsPii) return;
+        // Uncomment for debugging:
+        // console.log(`MSAL [${level}]: ${message}`);
+      },
+      logLevel: 0, // 0=Error, 1=Warning, 2=Info, 3=Verbose
+    },
   },
 };
 
-// Scopes for Microsoft Graph API and Dynamics 365 CRM
+// Scopes requested during login
 export const loginRequest = {
-  scopes: ["User.Read"],
+  scopes: [
+    "User.Read",        // Basic user profile
+    "openid",           // OpenID Connect
+    "profile",          // User profile info
+    "email",            // User email
+  ],
 };
 
 // Scopes for D365 CRM API access
 export const crmApiRequest = {
-  // Replace YOUR_CRM_ORG with your Dynamics 365 organization URL
-  scopes: ["https://YOUR_CRM_ORG.crm.dynamics.com/.default"],
+  scopes: [`${crmOrgUrl}/.default`],
 };
 
 // D365 CRM Configuration
 export const crmConfig = {
-  // Replace with your Dynamics 365 CRM organization URL
-  apiUrl: "https://YOUR_CRM_ORG.api.crm.dynamics.com/api/data/v9.2",
-  // Opportunity entity endpoint
+  // Dynamics 365 CRM Web API URL
+  apiUrl: `${crmOrgUrl}/api/data/v9.2`,
+
+  // API endpoints
   opportunitiesEndpoint: "/opportunities",
+  accountsEndpoint: "/accounts",
+  contactsEndpoint: "/contacts",
+
+  // Select fields for opportunities
+  opportunitySelect: [
+    "opportunityid",
+    "name",
+    "estimatedvalue",
+    "closeprobability",
+    "estimatedclosedate",
+    "description",
+    "statuscode",
+    "statecode"
+  ].join(","),
 };
 
 /*
- * SETUP INSTRUCTIONS:
+ * ============================================
+ * AZURE AD SETUP INSTRUCTIONS
+ * ============================================
  *
- * 1. Register an application in Azure Active Directory:
- *    - Go to Azure Portal > Azure Active Directory > App registrations
- *    - Click "New registration"
+ * 1. Go to Azure Portal: https://portal.azure.com
+ *
+ * 2. Register a new application:
+ *    - Azure Active Directory > App registrations > New registration
  *    - Name: "D365 FO Estimation Tool"
- *    - Supported account types: "Accounts in this organizational directory only"
- *    - Redirect URI: http://localhost:5173 (for development)
+ *    - Account types: "Single tenant" (your organization)
+ *    - Redirect URI:
+ *      - Platform: "Single-page application (SPA)"
+ *      - URL: http://localhost:5173
  *
- * 2. Configure API Permissions:
- *    - Microsoft Graph > User.Read (delegated)
- *    - Dynamics CRM > user_impersonation (delegated)
+ * 3. Copy your Application IDs:
+ *    - Application (client) ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+ *    - Directory (tenant) ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
  *
- * 3. Update this file:
- *    - Replace YOUR_CLIENT_ID with the Application (client) ID
- *    - Replace YOUR_TENANT_ID with your Azure AD tenant ID
- *    - Replace YOUR_CRM_ORG with your Dynamics 365 organization name
+ * 4. Add API permissions:
+ *    - Microsoft Graph > User.Read (Delegated)
+ *    - Dynamics CRM > user_impersonation (Delegated) [optional]
+ *    - Click "Grant admin consent"
  *
- * 4. For production, update redirectUri to your production URL
+ * 5. Configure this file:
+ *
+ *    OPTION A - Environment variables (.env file):
+ *    --------------------------------------------
+ *    VITE_AZURE_CLIENT_ID=your-client-id-here
+ *    VITE_AZURE_TENANT_ID=your-tenant-id-here
+ *    VITE_CRM_ORG_URL=https://yourorg.crm.dynamics.com
+ *
+ *    OPTION B - Direct edit (above):
+ *    --------------------------------------------
+ *    Replace "YOUR_CLIENT_ID" with your Application ID
+ *    Replace "YOUR_TENANT_ID" with your Tenant ID
+ *    Replace "YOUR_CRM_ORG" with your CRM org name
+ *
+ * 6. For production:
+ *    - Add production URL as redirect URI in Azure Portal
+ *    - Update CORS settings if needed
+ *
+ * ============================================
  */

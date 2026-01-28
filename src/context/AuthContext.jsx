@@ -1,16 +1,20 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { PublicClientApplication, InteractionStatus } from '@azure/msal-browser';
-import { msalConfig, loginRequest, crmApiRequest } from '../config/authConfig';
+import { PublicClientApplication } from '@azure/msal-browser';
+import { msalConfig, loginRequest, crmApiRequest, isAzureADConfigured } from '../config/authConfig';
 
 const AuthContext = createContext(null);
 
-// Initialize MSAL instance
+// Initialize MSAL instance only if configured
 let msalInstance = null;
 
-try {
-  msalInstance = new PublicClientApplication(msalConfig);
-} catch (error) {
-  console.warn('MSAL initialization skipped - configure authConfig.js for Azure AD');
+if (isAzureADConfigured()) {
+  try {
+    msalInstance = new PublicClientApplication(msalConfig);
+  } catch (error) {
+    console.warn('MSAL initialization failed:', error.message);
+  }
+} else {
+  console.info('Azure AD not configured. Use Demo Mode or update src/config/authConfig.js');
 }
 
 export function AuthProvider({ children }) {
@@ -21,7 +25,7 @@ export function AuthProvider({ children }) {
   const [msalReady, setMsalReady] = useState(false);
 
   // Check if MSAL is properly configured
-  const isMsalConfigured = msalConfig.auth.clientId !== "YOUR_CLIENT_ID";
+  const isMsalConfigured = isAzureADConfigured();
 
   useEffect(() => {
     const initializeMsal = async () => {
