@@ -24,20 +24,22 @@ const migrationEntities = [
 
 const complexityOptions = [
   { id: 'low', name: 'Low', multiplier: 1.0, description: 'Clean data, standard format' },
-  { id: 'medium', name: 'Medium', multiplier: 1.5, description: 'Some cleansing needed, minor transformations' },
-  { id: 'high', name: 'High', multiplier: 2.5, description: 'Significant cleansing, complex transformations' },
+  { id: 'medium', name: 'Medium', multiplier: 1.5, description: 'Some cleansing needed' },
+  { id: 'high', name: 'High', multiplier: 2.5, description: 'Significant cleansing required' },
 ];
 
 const volumeOptions = [
-  { id: 'small', name: 'Small', multiplier: 1.0, description: '< 10,000 records' },
-  { id: 'medium', name: 'Medium', multiplier: 1.2, description: '10,000 - 100,000 records' },
-  { id: 'large', name: 'Large', multiplier: 1.5, description: '100,000 - 1,000,000 records' },
-  { id: 'very_large', name: 'Very Large', multiplier: 2.0, description: '> 1,000,000 records' },
+  { id: 'small', name: 'Small', multiplier: 1.0, description: '< 10K records' },
+  { id: 'medium', name: 'Medium', multiplier: 1.2, description: '10K - 100K records' },
+  { id: 'large', name: 'Large', multiplier: 1.5, description: '100K - 1M records' },
+  { id: 'very_large', name: 'Very Large', multiplier: 2.0, description: '> 1M records' },
 ];
 
 function DataMigration() {
-  const { state, dispatch } = useEstimation();
+  const { state, dispatch, formatEstimate, getUnitLabel } = useEstimation();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
   const [newMigration, setNewMigration] = useState({
     entityId: '',
     sourceSystem: '',
@@ -49,6 +51,25 @@ function DataMigration() {
   });
 
   const dataMigrations = state.dataMigrations || [];
+  const categories = ['all', ...new Set(migrationEntities.map(e => e.category))];
+
+  const getCategoryIcon = (category) => {
+    const icons = {
+      'Master Data': '📋',
+      'Finance': '💰',
+      'Supply Chain': '📦',
+      'HR': '👥',
+      'Historical': '📚',
+      'Projects': '📊'
+    };
+    return icons[category] || '📄';
+  };
+
+  const filteredEntities = migrationEntities.filter(e => {
+    const matchesCategory = activeCategory === 'all' || e.category === activeCategory;
+    const matchesSearch = e.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   const handleAddMigration = () => {
     const entity = migrationEntities.find(e => e.id === newMigration.entityId);
@@ -91,12 +112,36 @@ function DataMigration() {
     setShowAddForm(false);
   };
 
+  const handleQuickAdd = (entity) => {
+    if (addedEntityIds.includes(entity.id)) return;
+
+    const complexityMult = complexityOptions.find(c => c.id === 'medium')?.multiplier || 1;
+    const volumeMult = volumeOptions.find(v => v.id === 'medium')?.multiplier || 1;
+    const calculatedHours = Math.round(entity.baseHours * complexityMult * volumeMult);
+
+    dispatch({
+      type: 'ADD_DATA_MIGRATION',
+      payload: {
+        entityId: entity.id,
+        entityName: entity.name,
+        category: entity.category,
+        sourceSystem: '',
+        complexity: 'medium',
+        volume: 'medium',
+        historicalYears: 0,
+        notes: '',
+        baseHours: entity.baseHours,
+        customHours: null,
+        hours: calculatedHours,
+      },
+    });
+  };
+
   const handleRemoveMigration = (id) => {
     dispatch({ type: 'REMOVE_DATA_MIGRATION', payload: id });
   };
 
   const handleUpdateMigration = (id, updates) => {
-    // Recalculate hours if complexity or volume changed
     const migration = dataMigrations.find(m => m.id === id);
     if (migration) {
       const newComplexity = updates.complexity || migration.complexity;
@@ -116,138 +161,245 @@ function DataMigration() {
   };
 
   const totalHours = dataMigrations.reduce((sum, m) => sum + (m.hours || 0), 0);
-
-  // Group by category
-  const groupedMigrations = dataMigrations.reduce((groups, migration) => {
-    const category = migration.category || 'Other';
-    if (!groups[category]) groups[category] = [];
-    groups[category].push(migration);
-    return groups;
-  }, {});
-
-  // Check which entities are already added
   const addedEntityIds = dataMigrations.map(m => m.entityId);
 
   return (
-    <div className="section data-migration">
+    <div className="section data-migration-modern">
       <div className="section-header">
-        <h2>Data Migration Scope</h2>
-        <div className="section-summary">
-          <span>{dataMigrations.length} entities</span>
-          <span className="divider">|</span>
-          <span className="hours">{totalHours.toLocaleString()} hours</span>
+        <div className="header-title">
+          <h2>Data Migration</h2>
+          <p className="section-subtitle">Define data entities to migrate from legacy systems</p>
+        </div>
+        <div className="header-stats">
+          <div className="stat-pill">
+            <span className="stat-number">{dataMigrations.length}</span>
+            <span className="stat-text">Entities</span>
+          </div>
+          <div className="stat-pill primary">
+            <span className="stat-number">{formatEstimate(totalHours).toLocaleString()}</span>
+            <span className="stat-text">{getUnitLabel()}</span>
+          </div>
         </div>
       </div>
 
-      <p className="section-description">
-        Define the data migration scope including master data, transactional data, and historical records
-        to be migrated from legacy systems to D365 F&O.
-      </p>
-
-      <div className="migration-actions">
-        <button className="btn-primary" onClick={() => setShowAddForm(true)}>
-          + Add Data Entity
-        </button>
+      {/* Search and Filter Bar */}
+      <div className="integration-toolbar">
+        <div className="search-box">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            placeholder="Search data entities..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && (
+            <button className="clear-search" onClick={() => setSearchTerm('')}>×</button>
+          )}
+        </div>
+        <div className="category-tabs">
+          {categories.map(category => (
+            <button
+              key={category}
+              className={`category-tab ${activeCategory === category ? 'active' : ''}`}
+              onClick={() => setActiveCategory(category)}
+            >
+              {category === 'all' ? 'All' : category}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* Data Entities Grid */}
+      <div className="integrations-grid">
+        {filteredEntities.map(entity => {
+          const isAdded = addedEntityIds.includes(entity.id);
+          return (
+            <div
+              key={entity.id}
+              className={`integration-card ${isAdded ? 'added' : ''}`}
+              onClick={() => handleQuickAdd(entity)}
+            >
+              <div className="card-icon">{getCategoryIcon(entity.category)}</div>
+              <div className="card-content">
+                <h4 className="card-title">{entity.name}</h4>
+                <span className="card-category">{entity.category}</span>
+                <p className="card-description">{entity.description}</p>
+              </div>
+              <div className="card-footer">
+                <span className="card-hours">{entity.baseHours}h base</span>
+                {isAdded ? (
+                  <span className="added-badge">✓ Added</span>
+                ) : (
+                  <span className="add-badge">+ Add</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Selected Migrations */}
+      {dataMigrations.length > 0 && (
+        <div className="selected-integrations-modern">
+          <div className="selected-header">
+            <h3>Migration Scope</h3>
+            <span className="selected-count">{dataMigrations.length} entities • {totalHours}h total</span>
+          </div>
+          <div className="selected-list">
+            {dataMigrations.map(migration => (
+              <div key={migration.id} className="selected-item migration-item">
+                <div className="item-main">
+                  <div className="item-icon">{getCategoryIcon(migration.category)}</div>
+                  <div className="item-info">
+                    <span className="item-name">{migration.entityName}</span>
+                    <div className="item-meta">
+                      <span className="item-category">{migration.category}</span>
+                      {migration.sourceSystem && (
+                        <span className="source-system">from {migration.sourceSystem}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="item-controls">
+                  <div className="control-group">
+                    <label>Source</label>
+                    <input
+                      type="text"
+                      className="compact-input wide"
+                      placeholder="Source system"
+                      value={migration.sourceSystem || ''}
+                      onChange={(e) => handleUpdateMigration(migration.id, { sourceSystem: e.target.value })}
+                    />
+                  </div>
+                  <div className="control-group">
+                    <label>Complexity</label>
+                    <select
+                      className="compact-select"
+                      value={migration.complexity}
+                      onChange={(e) => handleUpdateMigration(migration.id, { complexity: e.target.value })}
+                    >
+                      {complexityOptions.map(opt => (
+                        <option key={opt.id} value={opt.id}>{opt.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="control-group">
+                    <label>Volume</label>
+                    <select
+                      className="compact-select"
+                      value={migration.volume}
+                      onChange={(e) => handleUpdateMigration(migration.id, { volume: e.target.value })}
+                    >
+                      {volumeOptions.map(opt => (
+                        <option key={opt.id} value={opt.id}>{opt.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="control-group estimate">
+                    <label>Hours</label>
+                    <span className="estimate-value">{migration.hours}h</span>
+                  </div>
+                </div>
+                <button
+                  className="item-remove"
+                  onClick={() => handleRemoveMigration(migration.id)}
+                  title="Remove"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {dataMigrations.length === 0 && (
+        <div className="empty-state-modern">
+          <div className="empty-icon">📊</div>
+          <h3>No Data Migration Entities</h3>
+          <p>Click on entities above to add them to your migration scope</p>
+        </div>
+      )}
+
+      {/* Add Custom Modal */}
       {showAddForm && (
         <div className="modal-overlay" onClick={() => setShowAddForm(false)}>
-          <div className="modal modal-large" onClick={e => e.stopPropagation()}>
-            <h3>Add Data Migration Entity</h3>
+          <div className="modal modern-modal modal-large" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Add Data Migration Entity</h3>
+              <button className="modal-close" onClick={() => setShowAddForm(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>Data Entity *</label>
+                  <select
+                    value={newMigration.entityId}
+                    onChange={(e) => setNewMigration({ ...newMigration, entityId: e.target.value })}
+                  >
+                    <option value="">Select entity...</option>
+                    {migrationEntities.map(entity => (
+                      <option
+                        key={entity.id}
+                        value={entity.id}
+                        disabled={addedEntityIds.includes(entity.id)}
+                      >
+                        {entity.name} ({entity.baseHours}h) {addedEntityIds.includes(entity.id) ? '- Added' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            <div className="form-grid">
-              <div className="form-group">
-                <label>Data Entity *</label>
-                <select
-                  value={newMigration.entityId}
-                  onChange={(e) => setNewMigration({ ...newMigration, entityId: e.target.value })}
-                >
-                  <option value="">Select entity...</option>
-                  {migrationEntities.map(entity => (
-                    <option
-                      key={entity.id}
-                      value={entity.id}
-                      disabled={addedEntityIds.includes(entity.id)}
-                    >
-                      {entity.name} ({entity.baseHours}h) {addedEntityIds.includes(entity.id) ? '- Added' : ''}
-                    </option>
-                  ))}
-                </select>
+                <div className="form-group">
+                  <label>Source System</label>
+                  <input
+                    type="text"
+                    value={newMigration.sourceSystem}
+                    onChange={(e) => setNewMigration({ ...newMigration, sourceSystem: e.target.value })}
+                    placeholder="e.g., SAP, Oracle, Legacy ERP"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Data Quality / Complexity</label>
+                  <select
+                    value={newMigration.complexity}
+                    onChange={(e) => setNewMigration({ ...newMigration, complexity: e.target.value })}
+                  >
+                    {complexityOptions.map(opt => (
+                      <option key={opt.id} value={opt.id}>
+                        {opt.name} (x{opt.multiplier}) - {opt.description}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Data Volume</label>
+                  <select
+                    value={newMigration.volume}
+                    onChange={(e) => setNewMigration({ ...newMigration, volume: e.target.value })}
+                  >
+                    {volumeOptions.map(opt => (
+                      <option key={opt.id} value={opt.id}>
+                        {opt.name} (x{opt.multiplier}) - {opt.description}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div className="form-group">
-                <label>Source System</label>
-                <input
-                  type="text"
-                  value={newMigration.sourceSystem}
-                  onChange={(e) => setNewMigration({ ...newMigration, sourceSystem: e.target.value })}
-                  placeholder="e.g., SAP, Oracle, Legacy ERP"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Data Quality / Complexity</label>
-                <select
-                  value={newMigration.complexity}
-                  onChange={(e) => setNewMigration({ ...newMigration, complexity: e.target.value })}
-                >
-                  {complexityOptions.map(opt => (
-                    <option key={opt.id} value={opt.id}>
-                      {opt.name} (x{opt.multiplier}) - {opt.description}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Data Volume</label>
-                <select
-                  value={newMigration.volume}
-                  onChange={(e) => setNewMigration({ ...newMigration, volume: e.target.value })}
-                >
-                  {volumeOptions.map(opt => (
-                    <option key={opt.id} value={opt.id}>
-                      {opt.name} (x{opt.multiplier}) - {opt.description}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Historical Data (Years)</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="10"
-                  value={newMigration.historicalYears}
-                  onChange={(e) => setNewMigration({ ...newMigration, historicalYears: parseInt(e.target.value) || 0 })}
-                  placeholder="0"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Custom Hours (optional)</label>
-                <input
-                  type="number"
-                  value={newMigration.customHours || ''}
-                  onChange={(e) => setNewMigration({ ...newMigration, customHours: parseInt(e.target.value) || null })}
-                  placeholder="Override base hours"
+              <div className="form-group" style={{ marginTop: '1rem' }}>
+                <label>Notes / Requirements</label>
+                <textarea
+                  value={newMigration.notes}
+                  onChange={(e) => setNewMigration({ ...newMigration, notes: e.target.value })}
+                  placeholder="Data cleansing requirements, transformation rules, special considerations..."
+                  rows={3}
                 />
               </div>
             </div>
-
-            <div className="form-group" style={{ marginTop: '1rem' }}>
-              <label>Notes / Requirements</label>
-              <textarea
-                value={newMigration.notes}
-                onChange={(e) => setNewMigration({ ...newMigration, notes: e.target.value })}
-                placeholder="Data cleansing requirements, transformation rules, special considerations..."
-                rows={3}
-                style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #ddd' }}
-              />
-            </div>
-
-            <div className="modal-actions">
+            <div className="modal-footer">
               <button className="btn-secondary" onClick={() => setShowAddForm(false)}>
                 Cancel
               </button>
@@ -258,119 +410,6 @@ function DataMigration() {
           </div>
         </div>
       )}
-
-      {dataMigrations.length > 0 ? (
-        <div className="migration-list">
-          {Object.entries(groupedMigrations).map(([category, migrations]) => (
-            <div key={category} className="migration-category">
-              <h3 className="category-title">{category}</h3>
-              <table className="migration-table">
-                <thead>
-                  <tr>
-                    <th>Entity</th>
-                    <th>Source</th>
-                    <th>Complexity</th>
-                    <th>Volume</th>
-                    <th>History</th>
-                    <th>Hours</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {migrations.map(migration => (
-                    <tr key={migration.id}>
-                      <td>
-                        <strong>{migration.entityName}</strong>
-                        {migration.notes && (
-                          <p className="migration-notes">{migration.notes}</p>
-                        )}
-                      </td>
-                      <td>{migration.sourceSystem || '-'}</td>
-                      <td>
-                        <select
-                          className="inline-select"
-                          value={migration.complexity}
-                          onChange={(e) => handleUpdateMigration(migration.id, { complexity: e.target.value })}
-                        >
-                          {complexityOptions.map(opt => (
-                            <option key={opt.id} value={opt.id}>{opt.name}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td>
-                        <select
-                          className="inline-select"
-                          value={migration.volume}
-                          onChange={(e) => handleUpdateMigration(migration.id, { volume: e.target.value })}
-                        >
-                          {volumeOptions.map(opt => (
-                            <option key={opt.id} value={opt.id}>{opt.name}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td>{migration.historicalYears > 0 ? `${migration.historicalYears} yrs` : '-'}</td>
-                      <td>
-                        <input
-                          type="number"
-                          className="hours-input"
-                          value={migration.hours || 0}
-                          onChange={(e) => handleUpdateMigration(migration.id, { hours: parseInt(e.target.value) || 0 })}
-                        />
-                      </td>
-                      <td>
-                        <button
-                          className="btn-remove"
-                          onClick={() => handleRemoveMigration(migration.id)}
-                        >
-                          &times;
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ))}
-
-          <div className="migration-total">
-            <strong>Total Data Migration Hours:</strong>
-            <span className="total-hours">{totalHours.toLocaleString()} hours</span>
-          </div>
-        </div>
-      ) : (
-        <div className="empty-state">
-          <div className="empty-icon">📊</div>
-          <h3>No Data Migration Entities Defined</h3>
-          <p>Add data entities that need to be migrated from legacy systems.</p>
-          <button className="btn-primary" onClick={() => setShowAddForm(true)}>
-            + Add First Entity
-          </button>
-        </div>
-      )}
-
-      <div className="migration-templates">
-        <h3>Quick Add Common Entities</h3>
-        <div className="template-buttons">
-          {migrationEntities
-            .filter(entity => !addedEntityIds.includes(entity.id))
-            .slice(0, 8)
-            .map(entity => (
-              <button
-                key={entity.id}
-                className="template-btn"
-                onClick={() => {
-                  setNewMigration({
-                    ...newMigration,
-                    entityId: entity.id,
-                  });
-                  setShowAddForm(true);
-                }}
-              >
-                + {entity.name}
-              </button>
-            ))}
-        </div>
-      </div>
     </div>
   );
 }
