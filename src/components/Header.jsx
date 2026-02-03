@@ -1,7 +1,7 @@
 import { useEstimation } from '../context/EstimationContext';
 
 function Header() {
-  const { state, calculations } = useEstimation();
+  const { state, calculations, formatEstimate, estimationUnit } = useEstimation();
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -11,6 +11,16 @@ function Header() {
       maximumFractionDigits: 0
     }).format(amount);
   };
+
+  // Count modules from matrix or traditional selection
+  const moduleCount = state.legalEntities?.length > 0
+    ? Object.values(state.moduleMatrix || {}).reduce((count, entityModules) => {
+        return count + Object.values(entityModules).filter(m => m.selected).length;
+      }, 0)
+    : state.selectedModules.length;
+
+  // Count active legal entities
+  const activeEntities = state.legalEntities?.filter(le => le.isActive).length || 0;
 
   return (
     <header className="header">
@@ -24,12 +34,18 @@ function Header() {
         </div>
         <div className="header-stats">
           <div className="stat-box">
-            <span className="stat-label">Total Hours</span>
-            <span className="stat-value">{calculations.totalHours.toLocaleString()}</span>
+            <span className="stat-label">Total {estimationUnit === 'days' ? 'Days' : 'Hours'}</span>
+            <span className="stat-value">{formatEstimate(calculations.totalHours).toLocaleString()}</span>
           </div>
+          {activeEntities > 0 && (
+            <div className="stat-box">
+              <span className="stat-label">Legal Entities</span>
+              <span className="stat-value">{activeEntities}</span>
+            </div>
+          )}
           <div className="stat-box">
             <span className="stat-label">Modules</span>
-            <span className="stat-value">{state.selectedModules.length}</span>
+            <span className="stat-value">{moduleCount}</span>
           </div>
           <div className="stat-box">
             <span className="stat-label">Integrations</span>

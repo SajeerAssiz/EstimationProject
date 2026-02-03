@@ -15,7 +15,9 @@ const getInitialState = () => ({
     clientName: '',
     startDate: '',
     currency: 'USD',
-    contingencyPercent: 15
+    contingencyPercent: 15,
+    estimationUnit: 'hours', // 'hours' or 'days'
+    hoursPerDay: 8
   },
   legalEntities: [],
   moduleMatrix: {}, // { entityId: { moduleKey: { selected: true, complexity: 'medium', hours: 0 } } }
@@ -545,6 +547,28 @@ export function EstimationProvider({ children }) {
     }, 0);
   }, [calculateTotalHours, state.projectPlan.teamMembers]);
 
+  // Utility functions for unit conversion
+  const hoursPerDay = state.projectInfo.hoursPerDay || 8;
+  const estimationUnit = state.projectInfo.estimationUnit || 'hours';
+
+  const hoursToDays = useCallback((hours) => {
+    return Math.round((hours / hoursPerDay) * 10) / 10; // Round to 1 decimal
+  }, [hoursPerDay]);
+
+  const formatEstimate = useCallback((hours) => {
+    if (estimationUnit === 'days') {
+      return hoursToDays(hours);
+    }
+    return Math.round(hours);
+  }, [estimationUnit, hoursToDays]);
+
+  const getUnitLabel = useCallback((plural = true) => {
+    if (estimationUnit === 'days') {
+      return plural ? 'days' : 'day';
+    }
+    return plural ? 'hours' : 'hour';
+  }, [estimationUnit]);
+
   const value = {
     state,
     dispatch,
@@ -560,8 +584,27 @@ export function EstimationProvider({ children }) {
       supportHours: calculateSupportHours(),
       totalHours: calculateTotalHours(),
       phaseHours: calculatePhaseHours(),
-      teamCost: calculateTeamCost()
-    }
+      teamCost: calculateTeamCost(),
+      // Converted values based on unit setting
+      totalDays: hoursToDays(calculateTotalHours()),
+      moduleDays: hoursToDays(calculateModuleHours()),
+      integrationDays: hoursToDays(calculateIntegrationHours()),
+      // Display value based on selected unit
+      totalEstimate: formatEstimate(calculateTotalHours()),
+      moduleEstimate: formatEstimate(calculateModuleHours()),
+      integrationEstimate: formatEstimate(calculateIntegrationHours()),
+      reportEstimate: formatEstimate(calculateReportHours()),
+      biEstimate: formatEstimate(calculateBIHours()),
+      addonEstimate: formatEstimate(calculateAddonHours()),
+      customItemEstimate: formatEstimate(calculateCustomItemHours()),
+      dataMigrationEstimate: formatEstimate(calculateDataMigrationHours()),
+    },
+    // Utility functions
+    formatEstimate,
+    hoursToDays,
+    getUnitLabel,
+    estimationUnit,
+    hoursPerDay,
   };
 
   return (

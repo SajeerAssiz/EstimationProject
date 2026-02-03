@@ -62,6 +62,29 @@ function ProjectInfo() {
           </select>
         </div>
         <div className="form-group">
+          <label htmlFor="estimationUnit">Estimation Unit</label>
+          <select
+            id="estimationUnit"
+            value={projectInfo.estimationUnit || 'hours'}
+            onChange={(e) => handleChange('estimationUnit', e.target.value)}
+          >
+            <option value="hours">Hours</option>
+            <option value="days">Days (8 hours/day)</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="hoursPerDay">Hours per Day</label>
+          <input
+            type="number"
+            id="hoursPerDay"
+            min="1"
+            max="24"
+            value={projectInfo.hoursPerDay || 8}
+            onChange={(e) => handleChange('hoursPerDay', parseInt(e.target.value) || 8)}
+            disabled={projectInfo.estimationUnit === 'hours'}
+          />
+        </div>
+        <div className="form-group">
           <label htmlFor="contingency">Contingency %</label>
           <input
             type="number"

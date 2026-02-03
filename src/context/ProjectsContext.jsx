@@ -14,7 +14,9 @@ const getInitialEstimationState = () => ({
     clientName: '',
     startDate: '',
     currency: 'USD',
-    contingencyPercent: 15
+    contingencyPercent: 15,
+    estimationUnit: 'hours', // 'hours' or 'days'
+    hoursPerDay: 8
   },
   legalEntities: [],
   moduleMatrix: {},

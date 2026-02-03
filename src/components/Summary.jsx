@@ -4,7 +4,7 @@ import { generateEstimationDocument } from '../utils/exportWord';
 import { complexityMultipliers } from '../data/d365Modules';
 
 function Summary() {
-  const { state, dispatch, calculations } = useEstimation();
+  const { state, dispatch, calculations, formatEstimate, getUnitLabel, estimationUnit } = useEstimation();
   const [isExporting, setIsExporting] = useState(false);
 
   // Calculate WBS totals
@@ -332,7 +332,7 @@ function Summary() {
           <div className="legal-entity-summary">
             <h3>Legal Entity Estimation</h3>
             <p className="section-description">
-              Module hours breakdown by legal entity. Total: {calculations.moduleHours.toLocaleString()} hours
+              Module breakdown by legal entity. Total: {formatEstimate(calculations.moduleHours).toLocaleString()} {getUnitLabel()}
             </p>
             <div className="entity-grid">
               {Object.values(entityBreakdown).map(({ entity, hours, moduleCount }) => (
@@ -348,12 +348,8 @@ function Summary() {
                       <span className="stat-label">Modules</span>
                     </div>
                     <div className="stat">
-                      <span className="stat-value">{hours.toLocaleString()}</span>
-                      <span className="stat-label">Hours</span>
-                    </div>
-                    <div className="stat">
-                      <span className="stat-value">{Math.round(hours / 8)}</span>
-                      <span className="stat-label">Days</span>
+                      <span className="stat-value">{formatEstimate(hours).toLocaleString()}</span>
+                      <span className="stat-label">{getUnitLabel()}</span>
                     </div>
                   </div>
                   {entity.rolloutPhase && (
@@ -369,81 +365,81 @@ function Summary() {
           <div className="summary-card">
             <h4>Legal Entities</h4>
             <div className="summary-value">{state.legalEntities?.filter(le => le.isActive).length || 0}</div>
-            <div className="summary-hours">{calculations.moduleHours.toLocaleString()} module hours</div>
+            <div className="summary-hours">{formatEstimate(calculations.moduleHours).toLocaleString()} module {getUnitLabel()}</div>
           </div>
 
           <div className="summary-card">
             <h4>Integrations</h4>
             <div className="summary-value">{state.integrations.length}</div>
-            <div className="summary-hours">{calculations.integrationHours.toLocaleString()} hours</div>
+            <div className="summary-hours">{formatEstimate(calculations.integrationHours).toLocaleString()} {getUnitLabel()}</div>
           </div>
 
           <div className="summary-card">
             <h4>Data Migration</h4>
             <div className="summary-value">{(state.dataMigrations || []).length}</div>
-            <div className="summary-hours">{(calculations.dataMigrationHours || 0).toLocaleString()} hours</div>
+            <div className="summary-hours">{formatEstimate(calculations.dataMigrationHours || 0).toLocaleString()} {getUnitLabel()}</div>
           </div>
 
           <div className="summary-card">
             <h4>Reports</h4>
             <div className="summary-value">{state.reports.length}</div>
-            <div className="summary-hours">{calculations.reportHours.toLocaleString()} hours</div>
+            <div className="summary-hours">{formatEstimate(calculations.reportHours).toLocaleString()} {getUnitLabel()}</div>
           </div>
 
           <div className="summary-card">
             <h4>BI Dashboards</h4>
             <div className="summary-value">{state.biDashboards.length}</div>
-            <div className="summary-hours">{calculations.biHours.toLocaleString()} hours</div>
+            <div className="summary-hours">{formatEstimate(calculations.biHours).toLocaleString()} {getUnitLabel()}</div>
           </div>
 
           <div className="summary-card">
             <h4>Add-ons</h4>
             <div className="summary-value">{state.addons.length}</div>
-            <div className="summary-hours">{calculations.addonHours.toLocaleString()} hours</div>
+            <div className="summary-hours">{formatEstimate(calculations.addonHours).toLocaleString()} {getUnitLabel()}</div>
           </div>
 
           <div className="summary-card">
             <h4>Custom Items</h4>
             <div className="summary-value">{state.customItems.length}</div>
-            <div className="summary-hours">{calculations.customItemHours.toLocaleString()} hours</div>
+            <div className="summary-hours">{formatEstimate(calculations.customItemHours).toLocaleString()} {getUnitLabel()}</div>
           </div>
         </div>
 
         <div className="hours-breakdown">
-          <h3>Hours Breakdown</h3>
+          <h3>Estimation Breakdown ({estimationUnit === 'days' ? 'Days' : 'Hours'})</h3>
           <table className="breakdown-table">
             <tbody>
               <tr>
                 <td>Module Implementation</td>
-                <td className="hours-cell">{calculations.moduleHours.toLocaleString()}</td>
+                <td className="hours-cell">{formatEstimate(calculations.moduleHours).toLocaleString()}</td>
               </tr>
               <tr>
                 <td>Integrations</td>
-                <td className="hours-cell">{calculations.integrationHours.toLocaleString()}</td>
+                <td className="hours-cell">{formatEstimate(calculations.integrationHours).toLocaleString()}</td>
               </tr>
               <tr>
                 <td>Data Migration</td>
-                <td className="hours-cell">{(calculations.dataMigrationHours || 0).toLocaleString()}</td>
+                <td className="hours-cell">{formatEstimate(calculations.dataMigrationHours || 0).toLocaleString()}</td>
               </tr>
               <tr>
                 <td>Reports & BI</td>
-                <td className="hours-cell">{(calculations.reportHours + calculations.biHours).toLocaleString()}</td>
+                <td className="hours-cell">{formatEstimate(calculations.reportHours + calculations.biHours).toLocaleString()}</td>
               </tr>
               <tr>
                 <td>Add-ons & Custom</td>
-                <td className="hours-cell">{(calculations.addonHours + calculations.customItemHours).toLocaleString()}</td>
+                <td className="hours-cell">{formatEstimate(calculations.addonHours + calculations.customItemHours).toLocaleString()}</td>
               </tr>
               <tr className="subtotal-row">
                 <td><strong>Subtotal</strong></td>
-                <td className="hours-cell"><strong>{baseHours.toLocaleString()}</strong></td>
+                <td className="hours-cell"><strong>{formatEstimate(baseHours).toLocaleString()}</strong></td>
               </tr>
               <tr>
                 <td>Contingency ({state.projectInfo.contingencyPercent}%)</td>
-                <td className="hours-cell">{contingencyHours.toLocaleString()}</td>
+                <td className="hours-cell">{formatEstimate(contingencyHours).toLocaleString()}</td>
               </tr>
               <tr className="total-row">
-                <td><strong>Total Implementation Hours</strong></td>
-                <td className="hours-cell"><strong>{calculations.totalHours.toLocaleString()}</strong></td>
+                <td><strong>Total Implementation {estimationUnit === 'days' ? 'Days' : 'Hours'}</strong></td>
+                <td className="hours-cell"><strong>{formatEstimate(calculations.totalHours).toLocaleString()}</strong></td>
               </tr>
             </tbody>
           </table>
@@ -454,8 +450,8 @@ function Summary() {
             <h3>Support Plan</h3>
             <div className="support-details">
               <p><strong>{state.support.type.name}</strong></p>
-              <p>{state.support.durationMonths} months @ {state.support.type.monthlyHours} hours/month</p>
-              <p className="support-total">Total Support Hours: {calculations.supportHours.toLocaleString()}</p>
+              <p>{state.support.durationMonths} months @ {state.support.type.monthlyHours} {getUnitLabel()}/month</p>
+              <p className="support-total">Total Support {getUnitLabel()}: {formatEstimate(calculations.supportHours).toLocaleString()}</p>
             </div>
           </div>
         )}
