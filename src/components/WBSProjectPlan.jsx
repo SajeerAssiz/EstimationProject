@@ -1,10 +1,9 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useEstimation } from '../context/EstimationContext';
 import { wbsTemplate, generateWBS, moduleGroups, locationTypes } from '../data/wbsStructure';
-import { d365Modules } from '../data/d365Modules';
 
 function WBSProjectPlan() {
-  const { state, dispatch, calculations } = useEstimation();
+  const { state, dispatch } = useEstimation();
   const [wbsData, setWbsData] = useState([]);
   const [expandedPhases, setExpandedPhases] = useState({
     W1: true, W2: true, W3: true, W4: true, W5: true
@@ -43,31 +42,32 @@ function WBSProjectPlan() {
     return Array.from(groups);
   }, [activeModules]);
 
-  // Initialize WBS data
-  useEffect(() => {
+  // Initialize WBS from state or generate new
+  const initialWbsData = useMemo(() => {
     if (state.wbsData && state.wbsData.length > 0) {
-      setWbsData(state.wbsData);
-    } else {
-      // Generate initial WBS based on template
-      const initialWBS = generateWBS(wbsTemplate, activeModules, state.legalEntities);
-      setWbsData(initialWBS);
+      return state.wbsData;
     }
-  }, []);
+    return generateWBS(wbsTemplate, activeModules);
+  }, [state.wbsData, activeModules]);
 
-  // Regenerate WBS when modules change
+  // Set local state from initial data on mount
   useEffect(() => {
-    if (activeModules.length > 0 && wbsData.length === 0) {
-      const initialWBS = generateWBS(wbsTemplate, activeModules, state.legalEntities);
-      setWbsData(initialWBS);
-    }
-  }, [activeModules, state.legalEntities]);
+    setWbsData(initialWbsData);
+  }, [initialWbsData]);
 
-  // Save WBS data to context
-  useEffect(() => {
-    if (wbsData.length > 0) {
-      dispatch({ type: 'SET_WBS_DATA', payload: wbsData });
+  // Save WBS data to context (debounced)
+  const saveToContext = useCallback((data) => {
+    if (data.length > 0) {
+      dispatch({ type: 'SET_WBS_DATA', payload: data });
     }
-  }, [wbsData]);
+  }, [dispatch]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      saveToContext(wbsData);
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [wbsData, saveToContext]);
 
   const updateTask = (wbsId, field, value) => {
     setWbsData(prev => prev.map(item => {
@@ -83,10 +83,6 @@ function WBSProjectPlan() {
       ...prev,
       [phaseId]: !prev[phaseId]
     }));
-  };
-
-  const isChildOf = (childWbsId, parentWbsId) => {
-    return childWbsId.startsWith(parentWbsId + '.');
   };
 
   // Calculate totals
@@ -159,7 +155,7 @@ function WBSProjectPlan() {
   // Regenerate WBS from template
   const regenerateWBS = () => {
     if (window.confirm('This will reset all WBS data to defaults. Continue?')) {
-      const newWBS = generateWBS(wbsTemplate, activeModules, state.legalEntities);
+      const newWBS = generateWBS(wbsTemplate, activeModules);
       setWbsData(newWBS);
     }
   };
@@ -214,7 +210,7 @@ function WBSProjectPlan() {
             </tr>
           </thead>
           <tbody>
-            {wbsData.map((item, index) => {
+            {wbsData.map((item) => {
               // Check if this item should be visible
               const parts = item.wbsId.split('.');
               const phaseId = parts[0];

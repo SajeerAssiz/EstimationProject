@@ -242,7 +242,7 @@ export const locationTypes = [
 ];
 
 // Helper function to generate expanded WBS from template
-export const generateWBS = (template, selectedModules = [], legalEntities = []) => {
+export const generateWBS = (template, selectedModules = []) => {
   const wbsItems = [];
 
   // Determine which module groups are selected
@@ -253,64 +253,6 @@ export const generateWBS = (template, selectedModules = [], legalEntities = []) 
     }
     return true; // Include all if no specific selection
   });
-
-  const expandNode = (node, parentPath = '', moduleIndex = 0) => {
-    if (node.perModule && node.children) {
-      // This is a group that needs to be expanded per module
-      let subIndex = 1;
-      activeModuleGroups.forEach((moduleGroup, mIdx) => {
-        node.children.forEach((child) => {
-          if (child.moduleTask) {
-            const wbsId = child.wbsId.replace('{n}', subIndex.toString());
-            const taskName = child.task.replace('{moduleName}', moduleGroup.name);
-            wbsItems.push({
-              ...child,
-              wbsId: `${parentPath}${parentPath ? '.' : ''}${subIndex}`,
-              task: taskName,
-              moduleGroup: moduleGroup.id,
-              days: child.defaultDays || 0,
-              resources: child.defaultResources || 1,
-              location: child.location || 'mixed',
-              remarks: '',
-            });
-            subIndex++;
-          }
-        });
-      });
-
-      // Add non-module tasks
-      node.children.forEach((child) => {
-        if (!child.moduleTask) {
-          wbsItems.push({
-            ...child,
-            wbsId: `${parentPath}${parentPath ? '.' : ''}${subIndex}`,
-            days: child.defaultDays || 0,
-            resources: child.defaultResources || 1,
-            location: child.location || 'mixed',
-            remarks: '',
-          });
-          subIndex++;
-        }
-      });
-    } else if (node.children) {
-      // Regular group - just process children
-      node.children.forEach((child, idx) => {
-        const childWbsId = `${node.wbsId}.${idx + 1}`;
-        wbsItems.push({
-          ...child,
-          wbsId: childWbsId,
-          days: child.defaultDays || 0,
-          resources: child.defaultResources || 1,
-          location: child.location || 'mixed',
-          remarks: '',
-        });
-
-        if (child.children) {
-          expandNode(child, childWbsId);
-        }
-      });
-    }
-  };
 
   // Process all phases
   template.forEach((phase) => {

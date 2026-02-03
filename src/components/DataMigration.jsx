@@ -36,7 +36,7 @@ const volumeOptions = [
 ];
 
 function DataMigration() {
-  const { state, dispatch, calculations } = useEstimation();
+  const { state, dispatch } = useEstimation();
   const [showAddForm, setShowAddForm] = useState(false);
   const [newMigration, setNewMigration] = useState({
     entityId: '',

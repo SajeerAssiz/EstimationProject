@@ -344,7 +344,7 @@ export const generateEstimationDocument = async (state, calculations) => {
     activeEntities.forEach(entity => {
       const entityModules = moduleMatrix[entity.id] || {};
       const selectedModulesForEntity = Object.entries(entityModules)
-        .filter(([_, data]) => data.selected)
+        .filter(([, data]) => data.selected)
         .map(([key, data]) => ({
           key,
           ...data

@@ -18,7 +18,6 @@ const businessTypeModuleMapping = {
 function ModuleMatrix() {
   const { state, dispatch, calculations } = useEstimation();
   const [expandedModules, setExpandedModules] = useState({});
-  const [selectedModuleForEdit, setSelectedModuleForEdit] = useState(null);
 
   const legalEntities = state.legalEntities || [];
   const moduleMatrix = state.moduleMatrix || {};

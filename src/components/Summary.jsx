@@ -49,7 +49,7 @@ function Summary() {
       let entityHours = 0;
       let moduleCount = 0;
 
-      Object.entries(entityModules).forEach(([key, data]) => {
+      Object.entries(entityModules).forEach(([, data]) => {
         if (data.selected) {
           const hours = data.customHours || data.baseHours || 0;
           const multiplier = complexityMultipliers[data.complexity] || 1;
@@ -167,11 +167,11 @@ function Summary() {
       csv += '\nEntity,Module,Complexity,Hours\n';
       state.legalEntities.filter(le => le.isActive).forEach(entity => {
         const entityModules = state.moduleMatrix[entity.id] || {};
-        Object.entries(entityModules).forEach(([key, data]) => {
+        Object.entries(entityModules).forEach(([moduleKey, data]) => {
           if (data.selected) {
             const hours = data.customHours || data.baseHours || 0;
             const multiplier = complexityMultipliers[data.complexity] || 1;
-            csv += `"${entity.code}","${data.name || key}",${data.complexity},${Math.round(hours * multiplier)}\n`;
+            csv += `"${entity.code}","${data.name || moduleKey}",${data.complexity},${Math.round(hours * multiplier)}\n`;
           }
         });
       });

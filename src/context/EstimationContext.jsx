@@ -59,7 +59,7 @@ function estimationReducer(state, action) {
         }
       };
 
-    case 'REMOVE_LEGAL_ENTITY':
+    case 'REMOVE_LEGAL_ENTITY': {
       const newModuleMatrix = { ...state.moduleMatrix };
       delete newModuleMatrix[action.payload];
       return {
@@ -67,6 +67,7 @@ function estimationReducer(state, action) {
         legalEntities: state.legalEntities.filter(le => le.id !== action.payload),
         moduleMatrix: newModuleMatrix
       };
+    }
 
     case 'UPDATE_LEGAL_ENTITY':
       return {
@@ -118,7 +119,7 @@ function estimationReducer(state, action) {
       };
     }
 
-    case 'TOGGLE_MODULE':
+    case 'TOGGLE_MODULE': {
       const moduleExists = state.selectedModules.find(
         m => m.moduleId === action.payload.moduleId && m.subModuleId === action.payload.subModuleId
       );
@@ -139,6 +140,7 @@ function estimationReducer(state, action) {
           notes: ''
         }]
       };
+    }
 
     case 'UPDATE_MODULE':
       return {
@@ -335,7 +337,7 @@ function estimationReducer(state, action) {
         }
       };
 
-    case 'ADD_TEAM_MEMBER':
+    case 'ADD_TEAM_MEMBER': {
       const roleInfo = teamRoles.find(r => r.id === action.payload.roleId);
       return {
         ...state,
@@ -351,6 +353,7 @@ function estimationReducer(state, action) {
           }]
         }
       };
+    }
 
     case 'REMOVE_TEAM_MEMBER':
       return {
@@ -409,6 +412,7 @@ export function EstimationProvider({ children }) {
     } else {
       dispatch({ type: 'RESET_ESTIMATION' });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentProjectId]);
 
   // Auto-save estimation to current project when state changes
@@ -428,7 +432,7 @@ export function EstimationProvider({ children }) {
 
     Object.entries(state.moduleMatrix).forEach(([entityId, modules]) => {
       let entityHours = 0;
-      Object.entries(modules).forEach(([moduleKey, moduleData]) => {
+      Object.entries(modules).forEach(([, moduleData]) => {
         if (moduleData.selected) {
           const hours = moduleData.customHours || moduleData.baseHours || 0;
           const multiplier = complexityMultipliers[moduleData.complexity] || 1;
@@ -567,6 +571,7 @@ export function EstimationProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useEstimation() {
   const context = useContext(EstimationContext);
   if (!context) {

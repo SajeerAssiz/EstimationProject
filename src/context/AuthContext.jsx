@@ -101,7 +101,7 @@ export function AuthProvider({ children }) {
         account: user,
       });
       return response.accessToken;
-    } catch (err) {
+    } catch {
       // If silent acquisition fails, use redirect
       try {
         await msalInstance.acquireTokenRedirect({ scopes });
@@ -148,6 +148,7 @@ export function AuthProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

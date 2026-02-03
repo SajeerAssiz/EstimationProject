@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from './AuthContext';
-import { projectPhases, teamRoles } from '../data/d365Modules';
+import { projectPhases } from '../data/d365Modules';
 
 const ProjectsContext = createContext(null);
 
@@ -52,7 +52,7 @@ function projectsReducer(state, action) {
         isLoading: false,
       };
 
-    case 'CREATE_PROJECT':
+    case 'CREATE_PROJECT': {
       const newProject = {
         id: uuidv4(),
         createdAt: new Date().toISOString(),
@@ -74,6 +74,7 @@ function projectsReducer(state, action) {
         projects: [...state.projects, newProject],
         currentProjectId: newProject.id,
       };
+    }
 
     case 'SELECT_PROJECT':
       return {
@@ -95,7 +96,7 @@ function projectsReducer(state, action) {
         ),
       };
 
-    case 'DELETE_PROJECT':
+    case 'DELETE_PROJECT': {
       const filteredProjects = state.projects.filter(p => p.id !== action.payload);
       return {
         ...state,
@@ -105,8 +106,9 @@ function projectsReducer(state, action) {
             ? (filteredProjects[0]?.id || null)
             : state.currentProjectId,
       };
+    }
 
-    case 'DUPLICATE_PROJECT':
+    case 'DUPLICATE_PROJECT': {
       const projectToDuplicate = state.projects.find(p => p.id === action.payload);
       if (!projectToDuplicate) return state;
 
@@ -129,6 +131,7 @@ function projectsReducer(state, action) {
         projects: [...state.projects, duplicatedProject],
         currentProjectId: duplicatedProject.id,
       };
+    }
 
     case 'LINK_OPPORTUNITY':
       return {
@@ -259,6 +262,7 @@ export function ProjectsProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useProjects() {
   const context = useContext(ProjectsContext);
   if (!context) {
