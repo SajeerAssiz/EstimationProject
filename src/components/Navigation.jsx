@@ -1,8 +1,10 @@
 function Navigation({ activeSection, onSectionChange }) {
   const sections = [
     { id: 'project', label: 'Project Info', icon: '📋' },
+    { id: 'entities', label: 'Legal Entities', icon: '🏢' },
     { id: 'modules', label: 'Scope Modules', icon: '📦' },
     { id: 'integrations', label: 'Integrations', icon: '🔗' },
+    { id: 'migration', label: 'Data Migration', icon: '📥' },
     { id: 'reports', label: 'Reports & BI', icon: '📊' },
     { id: 'addons', label: 'Add-ons & Support', icon: '🧩' },
     { id: 'customdev', label: 'Custom Development', icon: '⚙️' },

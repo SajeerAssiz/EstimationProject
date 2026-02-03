@@ -69,8 +69,11 @@ const createRow = (cells, isHeader = false) => {
 export const generateEstimationDocument = async (state, calculations) => {
   const {
     projectInfo,
+    legalEntities = [],
+    moduleMatrix = {},
     selectedModules,
     integrations,
+    dataMigrations = [],
     reports,
     biDashboards,
     addons,
@@ -196,7 +199,98 @@ export const generateEstimationDocument = async (state, calculations) => {
     new Paragraph({ children: [new PageBreak()] })
   );
 
+  // ===== LEGAL ENTITIES =====
+  if (legalEntities.length > 0) {
+    const activeEntities = legalEntities.filter(le => le.isActive);
+
+    sections.push(
+      createHeading('Legal Entity Structure', HeadingLevel.HEADING_1),
+      createParagraph(
+        `This implementation covers ${activeEntities.length} legal entities across ${[...new Set(legalEntities.map(le => le.businessType).filter(Boolean))].length} business types.`
+      ),
+      new Paragraph({ spacing: { after: 200 } })
+    );
+
+    // Group by business type
+    const groupedEntities = legalEntities.reduce((groups, entity) => {
+      const type = entity.businessType || 'other';
+      if (!groups[type]) groups[type] = [];
+      groups[type].push(entity);
+      return groups;
+    }, {});
+
+    const businessTypeNames = {
+      retail: 'Retail',
+      manufacturing: 'Manufacturing',
+      distribution: 'Distribution',
+      services: 'Professional Services',
+      real_estate: 'Real Estate',
+      healthcare: 'Healthcare',
+      finance: 'Financial Services',
+      holding: 'Holding Company',
+      shared_services: 'Shared Services',
+      other: 'Other'
+    };
+
+    Object.entries(groupedEntities).forEach(([typeId, entities]) => {
+      sections.push(
+        createHeading(businessTypeNames[typeId] || typeId, HeadingLevel.HEADING_2)
+      );
+
+      const entityRows = [createRow(['Entity Code', 'Entity Name', 'Country', 'Currency', 'Rollout Phase'], true)];
+      entities.forEach(entity => {
+        entityRows.push(
+          createRow([
+            entity.code || '',
+            entity.name || '',
+            entity.country || '-',
+            entity.currency || 'USD',
+            `Phase ${entity.rolloutPhase || 1}`
+          ])
+        );
+      });
+
+      sections.push(
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: entityRows,
+        }),
+        new Paragraph({ spacing: { after: 200 } })
+      );
+    });
+
+    // Summary table
+    sections.push(
+      createHeading('Entity Summary', HeadingLevel.HEADING_2),
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          createRow(['Business Type', 'Active Entities', 'Countries', 'Rollout Phases'], true),
+          ...Object.entries(groupedEntities).map(([typeId, entities]) => {
+            const activeCount = entities.filter(e => e.isActive).length;
+            const countries = [...new Set(entities.map(e => e.country).filter(Boolean))];
+            const phases = [...new Set(entities.map(e => e.rolloutPhase))].sort();
+            return createRow([
+              businessTypeNames[typeId] || typeId,
+              `${activeCount} / ${entities.length}`,
+              countries.join(', ') || '-',
+              phases.map(p => `P${p}`).join(', ')
+            ]);
+          }),
+          createRow([
+            'TOTAL',
+            `${activeEntities.length} / ${legalEntities.length}`,
+            `${[...new Set(legalEntities.map(e => e.country).filter(Boolean))].length} countries`,
+            ''
+          ])
+        ],
+      }),
+      new Paragraph({ children: [new PageBreak()] })
+    );
+  }
+
   // ===== HOURS BREAKDOWN =====
+  const dataMigrationHours = calculations.dataMigrationHours || dataMigrations.reduce((sum, m) => sum + (m.hours || 0), 0);
   sections.push(
     createHeading('Hours Breakdown', HeadingLevel.HEADING_1),
     new Table({
@@ -205,6 +299,7 @@ export const generateEstimationDocument = async (state, calculations) => {
         createRow(['Category', 'Hours'], true),
         createRow(['D365 Modules Configuration', formatNumber(calculations.moduleHours)]),
         createRow(['Integrations', formatNumber(calculations.integrationHours)]),
+        createRow(['Data Migration', formatNumber(dataMigrationHours)]),
         createRow(['Reports', formatNumber(calculations.reportHours)]),
         createRow(['BI Dashboards', formatNumber(calculations.biHours)]),
         createRow(['Add-ons', formatNumber(calculations.addonHours)]),
@@ -214,6 +309,7 @@ export const generateEstimationDocument = async (state, calculations) => {
           formatNumber(
             calculations.moduleHours +
               calculations.integrationHours +
+              dataMigrationHours +
               calculations.reportHours +
               calculations.biHours +
               calculations.addonHours +
@@ -229,14 +325,68 @@ export const generateEstimationDocument = async (state, calculations) => {
 
   // ===== MODULE SCOPE =====
   sections.push(
-    createHeading('Module Scope', HeadingLevel.HEADING_1),
-    createParagraph(
-      `The following ${selectedModules.length} D365 F&O modules are in scope for this implementation:`
-    ),
-    new Paragraph({ spacing: { after: 200 } })
+    createHeading('Module Scope', HeadingLevel.HEADING_1)
   );
 
-  if (selectedModules.length > 0) {
+  // Check if using matrix style (legal entities) or traditional selection
+  if (legalEntities.length > 0 && Object.keys(moduleMatrix).length > 0) {
+    const activeEntities = legalEntities.filter(le => le.isActive);
+
+    sections.push(
+      createParagraph(
+        `Module scope is defined per legal entity in a matrix format. Total estimated hours: ${formatNumber(calculations.moduleHours)}`
+      ),
+      new Paragraph({ spacing: { after: 200 } })
+    );
+
+    // Create a summary per entity
+    activeEntities.forEach(entity => {
+      const entityModules = moduleMatrix[entity.id] || {};
+      const selectedModulesForEntity = Object.entries(entityModules)
+        .filter(([_, data]) => data.selected)
+        .map(([key, data]) => ({
+          key,
+          ...data
+        }));
+
+      if (selectedModulesForEntity.length > 0) {
+        let entityHours = 0;
+        selectedModulesForEntity.forEach(m => {
+          const hours = m.customHours || m.baseHours || 0;
+          const multiplier = { low: 1, medium: 1.3, high: 1.6 }[m.complexity] || 1;
+          entityHours += hours * multiplier;
+        });
+
+        sections.push(
+          createHeading(`${entity.code} - ${entity.name}`, HeadingLevel.HEADING_2),
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              createRow(['Module', 'Complexity', 'Hours'], true),
+              ...selectedModulesForEntity.map(m => {
+                const hours = m.customHours || m.baseHours || 0;
+                const multiplier = { low: 1, medium: 1.3, high: 1.6 }[m.complexity] || 1;
+                return createRow([
+                  m.name || m.key || '',
+                  m.complexity || 'medium',
+                  formatNumber(Math.round(hours * multiplier))
+                ]);
+              }),
+              createRow(['', 'TOTAL', formatNumber(Math.round(entityHours))])
+            ],
+          }),
+          new Paragraph({ spacing: { after: 200 } })
+        );
+      }
+    });
+  } else if (selectedModules.length > 0) {
+    sections.push(
+      createParagraph(
+        `The following ${selectedModules.length} D365 F&O modules are in scope for this implementation:`
+      ),
+      new Paragraph({ spacing: { after: 200 } })
+    );
+
     const moduleRows = [createRow(['Module', 'Sub-Module', 'Complexity', 'Hours'], true)];
     selectedModules.forEach((module) => {
       moduleRows.push(
@@ -291,6 +441,67 @@ export const generateEstimationDocument = async (state, calculations) => {
     );
   } else {
     sections.push(createParagraph('No integrations defined.', { italics: true }));
+  }
+
+  // ===== DATA MIGRATION =====
+  sections.push(
+    new Paragraph({ spacing: { after: 400 } }),
+    createHeading('Data Migration', HeadingLevel.HEADING_1)
+  );
+
+  if (dataMigrations.length > 0) {
+    sections.push(
+      createParagraph(
+        `${dataMigrations.length} data entities are identified for migration from legacy systems:`
+      ),
+      new Paragraph({ spacing: { after: 200 } })
+    );
+
+    // Group by category
+    const groupedMigrations = dataMigrations.reduce((groups, migration) => {
+      const category = migration.category || 'Other';
+      if (!groups[category]) groups[category] = [];
+      groups[category].push(migration);
+      return groups;
+    }, {});
+
+    Object.entries(groupedMigrations).forEach(([category, migrations]) => {
+      sections.push(
+        createHeading(category, HeadingLevel.HEADING_2),
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            createRow(['Entity', 'Source System', 'Complexity', 'Volume', 'Hours'], true),
+            ...migrations.map((m) =>
+              createRow([
+                m.entityName || '',
+                m.sourceSystem || '-',
+                m.complexity || 'medium',
+                m.volume || 'medium',
+                formatNumber(m.hours || 0),
+              ])
+            ),
+          ],
+        }),
+        new Paragraph({ spacing: { after: 200 } })
+      );
+    });
+
+    sections.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: 'Total Data Migration Hours: ', bold: true }),
+          new TextRun({
+            text: formatNumber(calculations.dataMigrationHours || dataMigrations.reduce((sum, m) => sum + (m.hours || 0), 0)),
+            bold: true,
+            color: '0078D4'
+          }),
+        ],
+        spacing: { before: 200, after: 400 },
+      })
+    );
+  } else {
+    sections.push(createParagraph('No data migration entities defined.', { italics: true }));
   }
 
   // ===== REPORTS & BI =====

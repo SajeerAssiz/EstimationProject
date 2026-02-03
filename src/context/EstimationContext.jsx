@@ -17,6 +17,8 @@ const getInitialState = () => ({
     currency: 'USD',
     contingencyPercent: 15
   },
+  legalEntities: [],
+  moduleMatrix: {}, // { entityId: { moduleKey: { selected: true, complexity: 'medium', hours: 0 } } }
   selectedModules: [],
   integrations: [],
   reports: [],
@@ -27,6 +29,7 @@ const getInitialState = () => ({
     durationMonths: 12
   },
   customItems: [],
+  dataMigrations: [],
   projectPlan: {
     phases: projectPhases.map(p => ({ ...p, enabled: true })),
     teamMembers: []
@@ -40,6 +43,79 @@ function estimationReducer(state, action) {
         ...state,
         projectInfo: { ...state.projectInfo, ...action.payload }
       };
+
+    // Legal Entity Actions
+    case 'ADD_LEGAL_ENTITY':
+      return {
+        ...state,
+        legalEntities: [...state.legalEntities, {
+          ...action.payload,
+          id: action.payload.id || uuidv4()
+        }],
+        moduleMatrix: {
+          ...state.moduleMatrix,
+          [action.payload.id || uuidv4()]: {}
+        }
+      };
+
+    case 'REMOVE_LEGAL_ENTITY':
+      const newModuleMatrix = { ...state.moduleMatrix };
+      delete newModuleMatrix[action.payload];
+      return {
+        ...state,
+        legalEntities: state.legalEntities.filter(le => le.id !== action.payload),
+        moduleMatrix: newModuleMatrix
+      };
+
+    case 'UPDATE_LEGAL_ENTITY':
+      return {
+        ...state,
+        legalEntities: state.legalEntities.map(le =>
+          le.id === action.payload.id ? { ...le, ...action.payload.updates } : le
+        )
+      };
+
+    // Module Matrix Actions (for matrix-style estimation)
+    case 'TOGGLE_MODULE_FOR_ENTITY': {
+      const { entityId, moduleKey, moduleData } = action.payload;
+      const entityModules = state.moduleMatrix[entityId] || {};
+      const isSelected = entityModules[moduleKey]?.selected;
+
+      return {
+        ...state,
+        moduleMatrix: {
+          ...state.moduleMatrix,
+          [entityId]: {
+            ...entityModules,
+            [moduleKey]: isSelected ? { selected: false } : {
+              selected: true,
+              complexity: 'medium',
+              customHours: null,
+              ...moduleData
+            }
+          }
+        }
+      };
+    }
+
+    case 'UPDATE_MODULE_FOR_ENTITY': {
+      const { entityId, moduleKey, updates } = action.payload;
+      const entityModules = state.moduleMatrix[entityId] || {};
+
+      return {
+        ...state,
+        moduleMatrix: {
+          ...state.moduleMatrix,
+          [entityId]: {
+            ...entityModules,
+            [moduleKey]: {
+              ...entityModules[moduleKey],
+              ...updates
+            }
+          }
+        }
+      };
+    }
 
     case 'TOGGLE_MODULE':
       const moduleExists = state.selectedModules.find(
@@ -205,6 +281,30 @@ function estimationReducer(state, action) {
         )
       };
 
+    // Data Migration Actions
+    case 'ADD_DATA_MIGRATION':
+      return {
+        ...state,
+        dataMigrations: [...state.dataMigrations, {
+          id: uuidv4(),
+          ...action.payload
+        }]
+      };
+
+    case 'REMOVE_DATA_MIGRATION':
+      return {
+        ...state,
+        dataMigrations: state.dataMigrations.filter(d => d.id !== action.payload)
+      };
+
+    case 'UPDATE_DATA_MIGRATION':
+      return {
+        ...state,
+        dataMigrations: state.dataMigrations.map(d =>
+          d.id === action.payload.id ? { ...d, ...action.payload.updates } : d
+        )
+      };
+
     case 'TOGGLE_PHASE':
       return {
         ...state,
@@ -298,13 +398,39 @@ export function EstimationProvider({ children }) {
     }
   }, [state, currentProjectId, updateCurrentProject]);
 
+  // Calculate hours from module matrix (per legal entity)
+  const calculateModuleMatrixHours = useCallback(() => {
+    let totalHours = 0;
+    const entityBreakdown = {};
+
+    Object.entries(state.moduleMatrix).forEach(([entityId, modules]) => {
+      let entityHours = 0;
+      Object.entries(modules).forEach(([moduleKey, moduleData]) => {
+        if (moduleData.selected) {
+          const hours = moduleData.customHours || moduleData.baseHours || 0;
+          const multiplier = complexityMultipliers[moduleData.complexity] || 1;
+          entityHours += hours * multiplier;
+        }
+      });
+      entityBreakdown[entityId] = entityHours;
+      totalHours += entityHours;
+    });
+
+    return { totalHours: Math.round(totalHours), entityBreakdown };
+  }, [state.moduleMatrix]);
+
   const calculateModuleHours = useCallback(() => {
+    // If using matrix style (legal entities defined), use matrix calculation
+    if (state.legalEntities.length > 0) {
+      return calculateModuleMatrixHours().totalHours;
+    }
+    // Otherwise use traditional module selection
     return state.selectedModules.reduce((total, module) => {
       const hours = module.customHours || module.baseHours;
       const multiplier = complexityMultipliers[module.complexity] || 1;
       return total + (hours * multiplier);
     }, 0);
-  }, [state.selectedModules]);
+  }, [state.selectedModules, state.legalEntities, calculateModuleMatrixHours]);
 
   const calculateIntegrationHours = useCallback(() => {
     return state.integrations.reduce((total, integration) => {
@@ -341,6 +467,12 @@ export function EstimationProvider({ children }) {
     }, 0);
   }, [state.customItems]);
 
+  const calculateDataMigrationHours = useCallback(() => {
+    return state.dataMigrations.reduce((total, migration) => {
+      return total + (migration.hours || 0);
+    }, 0);
+  }, [state.dataMigrations]);
+
   const calculateSupportHours = useCallback(() => {
     if (!state.support.type) return 0;
     return state.support.type.monthlyHours * state.support.durationMonths;
@@ -352,7 +484,8 @@ export function EstimationProvider({ children }) {
       calculateReportHours() +
       calculateBIHours() +
       calculateAddonHours() +
-      calculateCustomItemHours();
+      calculateCustomItemHours() +
+      calculateDataMigrationHours();
 
     const contingency = baseHours * (state.projectInfo.contingencyPercent / 100);
     return Math.round(baseHours + contingency);
@@ -363,6 +496,7 @@ export function EstimationProvider({ children }) {
     calculateBIHours,
     calculateAddonHours,
     calculateCustomItemHours,
+    calculateDataMigrationHours,
     state.projectInfo.contingencyPercent
   ]);
 
@@ -389,11 +523,13 @@ export function EstimationProvider({ children }) {
     dispatch,
     calculations: {
       moduleHours: calculateModuleHours(),
+      moduleMatrixBreakdown: calculateModuleMatrixHours(),
       integrationHours: calculateIntegrationHours(),
       reportHours: calculateReportHours(),
       biHours: calculateBIHours(),
       addonHours: calculateAddonHours(),
       customItemHours: calculateCustomItemHours(),
+      dataMigrationHours: calculateDataMigrationHours(),
       supportHours: calculateSupportHours(),
       totalHours: calculateTotalHours(),
       phaseHours: calculatePhaseHours(),

@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import { useEstimation } from '../context/EstimationContext';
 import { d365Modules, complexityMultipliers } from '../data/d365Modules';
+import ModuleMatrix from './ModuleMatrix';
 
 function ScopeModules() {
   const { state, dispatch, calculations } = useEstimation();
   const [expandedModule, setExpandedModule] = useState(null);
+
+  // If legal entities are defined, use matrix-style selection
+  if (state.legalEntities && state.legalEntities.length > 0) {
+    return <ModuleMatrix />;
+  }
 
   const isModuleSelected = (moduleId, subModuleId) => {
     return state.selectedModules.some(

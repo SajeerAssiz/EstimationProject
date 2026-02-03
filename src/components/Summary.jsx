@@ -30,6 +30,7 @@ function Summary() {
 
   const baseHours = calculations.moduleHours +
     calculations.integrationHours +
+    (calculations.dataMigrationHours || 0) +
     calculations.reportHours +
     calculations.biHours +
     calculations.addonHours +
@@ -43,6 +44,7 @@ function Summary() {
       estimation: {
         modules: state.selectedModules,
         integrations: state.integrations,
+        dataMigrations: state.dataMigrations,
         reports: state.reports,
         biDashboards: state.biDashboards,
         addons: state.addons,
@@ -52,6 +54,7 @@ function Summary() {
       calculations: {
         moduleHours: calculations.moduleHours,
         integrationHours: calculations.integrationHours,
+        dataMigrationHours: calculations.dataMigrationHours || 0,
         reportHours: calculations.reportHours,
         biHours: calculations.biHours,
         addonHours: calculations.addonHours,
@@ -228,6 +231,12 @@ function Summary() {
           </div>
 
           <div className="summary-card">
+            <h4>Data Migration</h4>
+            <div className="summary-value">{(state.dataMigrations || []).length}</div>
+            <div className="summary-hours">{(calculations.dataMigrationHours || 0).toLocaleString()} hours</div>
+          </div>
+
+          <div className="summary-card">
             <h4>Reports</h4>
             <div className="summary-value">{state.reports.length}</div>
             <div className="summary-hours">{calculations.reportHours.toLocaleString()} hours</div>
@@ -263,6 +272,10 @@ function Summary() {
               <tr>
                 <td>Integrations</td>
                 <td className="hours-cell">{calculations.integrationHours.toLocaleString()}</td>
+              </tr>
+              <tr>
+                <td>Data Migration</td>
+                <td className="hours-cell">{(calculations.dataMigrationHours || 0).toLocaleString()}</td>
               </tr>
               <tr>
                 <td>Reports & BI</td>

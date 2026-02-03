@@ -7,8 +7,10 @@ import ProjectsDashboard from './components/ProjectsDashboard';
 import Header from './components/Header';
 import Navigation from './components/Navigation';
 import ProjectInfo from './components/ProjectInfo';
+import LegalEntities from './components/LegalEntities';
 import ScopeModules from './components/ScopeModules';
 import Integrations from './components/Integrations';
+import DataMigration from './components/DataMigration';
 import ReportsBI from './components/ReportsBI';
 import AddonsSupport from './components/AddonsSupport';
 import CustomDevelopments from './components/CustomDevelopments';
@@ -24,10 +26,14 @@ function EstimationApp() {
     switch (activeSection) {
       case 'project':
         return <ProjectInfo />;
+      case 'entities':
+        return <LegalEntities />;
       case 'modules':
         return <ScopeModules />;
       case 'integrations':
         return <Integrations />;
+      case 'migration':
+        return <DataMigration />;
       case 'reports':
         return <ReportsBI />;
       case 'addons':
