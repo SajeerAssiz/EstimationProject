@@ -362,6 +362,62 @@ export const generateEstimationDocument = async (state, calculations) => {
     sections.push(createParagraph('No add-ons selected.', { italics: true }));
   }
 
+  // ===== CUSTOM DEVELOPMENTS =====
+  sections.push(
+    new Paragraph({ spacing: { after: 400 } }),
+    createHeading('Custom Developments & Customizations', HeadingLevel.HEADING_1)
+  );
+
+  if (customItems.length > 0) {
+    sections.push(
+      createParagraph(`${customItems.length} custom development items are identified for this implementation:`),
+      new Paragraph({ spacing: { after: 200 } })
+    );
+
+    // Group by category
+    const groupedItems = customItems.reduce((groups, item) => {
+      const cat = item.category || 'Other';
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(item);
+      return groups;
+    }, {});
+
+    Object.entries(groupedItems).forEach(([category, items]) => {
+      sections.push(
+        createHeading(category, HeadingLevel.HEADING_3),
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            createRow(['Name', 'Description', 'Priority', 'Hours'], true),
+            ...items.map((item) =>
+              createRow([
+                item.name || '',
+                item.description || '-',
+                item.priority || 'medium',
+                formatNumber(item.hours || 0),
+              ])
+            ),
+          ],
+        }),
+        new Paragraph({ spacing: { after: 200 } })
+      );
+    });
+
+    sections.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: 'Total Custom Development Hours: ', bold: true }),
+          new TextRun({ text: formatNumber(calculations.customItemHours), bold: true, color: '0078D4' }),
+        ],
+        spacing: { before: 200, after: 400 },
+      })
+    );
+  } else {
+    sections.push(createParagraph('No custom development items defined.', { italics: true }));
+  }
+
+  sections.push(new Paragraph({ children: [new PageBreak()] }));
+
   // ===== PROJECT PHASES =====
   sections.push(
     new Paragraph({ spacing: { after: 400 } }),

@@ -2350,3 +2350,169 @@ body {
 .team-table .days-cell {
   color: var(--primary-color);
 }
+
+/* Custom Developments Section */
+.custom-developments .dev-actions {
+  margin-bottom: 1.5rem;
+}
+
+.dev-items-list {
+  margin-top: 1.5rem;
+}
+
+.dev-category {
+  margin-bottom: 2rem;
+}
+
+.dev-category .category-title {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dev-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.dev-card {
+  background: var(--bg-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+}
+
+.dev-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.dev-card-header h4 {
+  font-size: 1rem;
+  margin: 0;
+  color: var(--text-color);
+}
+
+.dev-module {
+  font-size: 0.8rem;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+}
+
+.dev-description {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.dev-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.priority-badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.priority-high {
+  background: #fde7e9;
+  color: #a4262c;
+}
+
+.priority-medium {
+  background: #fff4ce;
+  color: #8a6d00;
+}
+
+.priority-low {
+  background: #dff6dd;
+  color: #107c10;
+}
+
+.dev-hours {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.dev-hours .hours-input {
+  width: 60px;
+  padding: 0.25rem;
+  text-align: center;
+}
+
+.dev-total {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: var(--primary-light);
+  border-radius: var(--radius-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dev-total .total-hours {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.dev-templates {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.dev-templates h3 {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: var(--text-secondary);
+}
+
+.template-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.template-btn {
+  padding: 0.5rem 0.75rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.template-btn:hover {
+  border-color: var(--primary-color);
+  background: var(--primary-light);
+}
+
+.empty-state {
+  padding: 3rem;
+  text-align: center;
+  color: var(--text-secondary);
+  background: var(--bg-color);
+  border-radius: var(--radius-md);
+}
+
+.empty-state p {
+  margin-bottom: 0.5rem;
+}

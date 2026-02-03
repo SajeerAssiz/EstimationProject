@@ -11,6 +11,7 @@ import ScopeModules from './components/ScopeModules';
 import Integrations from './components/Integrations';
 import ReportsBI from './components/ReportsBI';
 import AddonsSupport from './components/AddonsSupport';
+import CustomDevelopments from './components/CustomDevelopments';
 import ProjectPlan from './components/ProjectPlan';
 import Summary from './components/Summary';
 import './App.css';
@@ -31,6 +32,8 @@ function EstimationApp() {
         return <ReportsBI />;
       case 'addons':
         return <AddonsSupport />;
+      case 'customdev':
+        return <CustomDevelopments />;
       case 'plan':
         return <ProjectPlan />;
       case 'summary':

@@ -5,6 +5,7 @@ function Navigation({ activeSection, onSectionChange }) {
     { id: 'integrations', label: 'Integrations', icon: '🔗' },
     { id: 'reports', label: 'Reports & BI', icon: '📊' },
     { id: 'addons', label: 'Add-ons & Support', icon: '🧩' },
+    { id: 'customdev', label: 'Custom Development', icon: '⚙️' },
     { id: 'plan', label: 'Project Plan', icon: '📅' },
     { id: 'summary', label: 'Summary', icon: '✅' }
   ];
