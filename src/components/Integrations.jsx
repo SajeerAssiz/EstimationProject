@@ -5,12 +5,19 @@ import { integrationTypes, complexityMultipliers } from '../data/d365Modules';
 function Integrations() {
   const { state, dispatch, calculations, formatEstimate, getUnitLabel } = useEstimation();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showInstanceModal, setShowInstanceModal] = useState(null); // integration type to add instance for
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [customIntegration, setCustomIntegration] = useState({
     name: '',
     category: 'Custom',
     baseHours: 60
+  });
+  const [newInstance, setNewInstance] = useState({
+    instanceName: '',
+    complexity: 'medium',
+    customHours: null,
+    remarks: ''
   });
 
   const categories = ['all', ...new Set(integrationTypes.map(i => i.category))];
@@ -21,10 +28,16 @@ function Integrations() {
     return matchesCategory && matchesSearch;
   });
 
-  const handleAddIntegration = (integration) => {
+  const handleAddIntegration = (integration, instanceDetails = {}) => {
     dispatch({
       type: 'ADD_INTEGRATION',
-      payload: integration
+      payload: {
+        ...integration,
+        instanceName: instanceDetails.instanceName || '',
+        complexity: instanceDetails.complexity || 'medium',
+        customHours: instanceDetails.customHours || null,
+        remarks: instanceDetails.remarks || ''
+      }
     });
   };
 
@@ -45,7 +58,7 @@ function Integrations() {
   const handleAddCustomIntegration = () => {
     if (customIntegration.name.trim()) {
       handleAddIntegration({
-        integrationId: `custom_${Date.now()}`,
+        integrationId: `custom_${crypto.randomUUID()}`,
         name: customIntegration.name,
         category: customIntegration.category,
         baseHours: customIntegration.baseHours
@@ -55,8 +68,49 @@ function Integrations() {
     }
   };
 
-  const isIntegrationAdded = (integrationId) => {
-    return state.integrations.some(i => i.integrationId === integrationId);
+  // Open modal to add instance with details
+  const openInstanceModal = (integration) => {
+    setShowInstanceModal(integration);
+    setNewInstance({
+      instanceName: '',
+      complexity: 'medium',
+      customHours: null,
+      remarks: ''
+    });
+  };
+
+  // Add instance with details
+  const handleAddInstance = () => {
+    if (showInstanceModal) {
+      handleAddIntegration({
+        integrationId: showInstanceModal.id,
+        name: showInstanceModal.name,
+        category: showInstanceModal.category,
+        baseHours: showInstanceModal.baseHours
+      }, newInstance);
+      setShowInstanceModal(null);
+      setNewInstance({
+        instanceName: '',
+        complexity: 'medium',
+        customHours: null,
+        remarks: ''
+      });
+    }
+  };
+
+  // Quick add without details
+  const handleQuickAdd = (integration) => {
+    handleAddIntegration({
+      integrationId: integration.id,
+      name: integration.name,
+      category: integration.category,
+      baseHours: integration.baseHours
+    });
+  };
+
+  // Get count of instances for an integration type
+  const getInstanceCount = (integrationId) => {
+    return state.integrations.filter(i => i.integrationId === integrationId).length;
   };
 
   const getCategoryIcon = (category) => {
@@ -65,11 +119,21 @@ function Integrations() {
       'CRM': '👥',
       'E-Commerce': '🛒',
       'Banking': '🏦',
+      'Finance': '💰',
       'EDI': '📡',
       'Warehouse': '📦',
       'HR': '👤',
       'Tax': '📋',
       'Shipping': '🚚',
+      'Payments': '💳',
+      'Logistics': '🚛',
+      'Hardware': '🖥️',
+      'Cloud': '☁️',
+      'Analytics': '📊',
+      'Documents': '📄',
+      'Productivity': '📱',
+      'Retail': '🏪',
+      'Compliance': '✅',
       'Other': '🔗',
       'Custom': '⚙️'
     };
@@ -86,7 +150,7 @@ function Integrations() {
         <div className="header-stats">
           <div className="stat-pill">
             <span className="stat-number">{state.integrations.length}</span>
-            <span className="stat-text">Selected</span>
+            <span className="stat-text">Instances</span>
           </div>
           <div className="stat-pill primary">
             <span className="stat-number">{formatEstimate(calculations.integrationHours).toLocaleString()}</span>
@@ -125,30 +189,40 @@ function Integrations() {
       {/* Available Integrations Grid */}
       <div className="integrations-grid">
         {filteredIntegrations.map(integration => {
-          const isAdded = isIntegrationAdded(integration.id);
+          const instanceCount = getInstanceCount(integration.id);
           return (
             <div
               key={integration.id}
-              className={`integration-card ${isAdded ? 'added' : ''}`}
-              onClick={() => !isAdded && handleAddIntegration({
-                integrationId: integration.id,
-                name: integration.name,
-                category: integration.category,
-                baseHours: integration.baseHours
-              })}
+              className={`integration-card ${instanceCount > 0 ? 'has-instances' : ''}`}
             >
-              <div className="card-icon">{getCategoryIcon(integration.category)}</div>
+              <div className="card-icon">
+                {getCategoryIcon(integration.category)}
+                {instanceCount > 0 && (
+                  <span className="instance-count-badge">{instanceCount}</span>
+                )}
+              </div>
               <div className="card-content">
                 <h4 className="card-title">{integration.name}</h4>
                 <span className="card-category">{integration.category}</span>
               </div>
               <div className="card-footer">
                 <span className="card-hours">{integration.baseHours}h base</span>
-                {isAdded ? (
-                  <span className="added-badge">✓ Added</span>
-                ) : (
-                  <span className="add-badge">+ Add</span>
-                )}
+                <div className="card-actions">
+                  <button
+                    className="btn-quick-add"
+                    onClick={() => handleQuickAdd(integration)}
+                    title="Quick add"
+                  >
+                    +
+                  </button>
+                  <button
+                    className="btn-add-details"
+                    onClick={() => openInstanceModal(integration)}
+                    title="Add with details"
+                  >
+                    + Details
+                  </button>
+                </div>
               </div>
             </div>
           );
@@ -169,6 +243,92 @@ function Integrations() {
           </div>
         </div>
       </div>
+
+      {/* Add Instance with Details Modal */}
+      {showInstanceModal && (
+        <div className="modal-overlay" onClick={() => setShowInstanceModal(null)}>
+          <div className="modal modern-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Add {showInstanceModal.name}</h3>
+              <button className="modal-close" onClick={() => setShowInstanceModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="instance-type-info">
+                <span className="type-icon">{getCategoryIcon(showInstanceModal.category)}</span>
+                <div>
+                  <strong>{showInstanceModal.name}</strong>
+                  <span className="type-category">{showInstanceModal.category} • {showInstanceModal.baseHours}h base</span>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Instance Name / Description</label>
+                <input
+                  type="text"
+                  value={newInstance.instanceName}
+                  onChange={(e) => setNewInstance({ ...newInstance, instanceName: e.target.value })}
+                  placeholder="e.g., ABC Bank, Terminal 1, SAP Production"
+                />
+                <span className="field-hint">Identify this specific instance</span>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Complexity</label>
+                  <select
+                    value={newInstance.complexity}
+                    onChange={(e) => setNewInstance({ ...newInstance, complexity: e.target.value })}
+                  >
+                    <option value="low">Low (from repository)</option>
+                    <option value="medium">Medium (standard)</option>
+                    <option value="high">High (complex/new)</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Custom Hours (optional)</label>
+                  <input
+                    type="number"
+                    value={newInstance.customHours || ''}
+                    onChange={(e) => setNewInstance({
+                      ...newInstance,
+                      customHours: e.target.value ? parseInt(e.target.value) : null
+                    })}
+                    placeholder={showInstanceModal.baseHours.toString()}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Remarks</label>
+                <textarea
+                  value={newInstance.remarks}
+                  onChange={(e) => setNewInstance({ ...newInstance, remarks: e.target.value })}
+                  placeholder="Any notes about this integration instance..."
+                  rows="2"
+                />
+              </div>
+
+              <div className="estimate-preview">
+                <span>Estimated Hours:</span>
+                <strong>
+                  {Math.round(
+                    (newInstance.customHours || showInstanceModal.baseHours) *
+                    complexityMultipliers[newInstance.complexity]
+                  )}h
+                </strong>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowInstanceModal(null)}>
+                Cancel
+              </button>
+              <button className="btn-primary" onClick={handleAddInstance}>
+                Add Instance
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Custom Integration Modal */}
       {showAddModal && (
@@ -237,7 +397,7 @@ function Integrations() {
         <div className="selected-integrations-modern">
           <div className="selected-header">
             <h3>Selected Integrations</h3>
-            <span className="selected-count">{state.integrations.length} items</span>
+            <span className="selected-count">{state.integrations.length} instances</span>
           </div>
           <div className="selected-list">
             {state.integrations.map(integration => (
@@ -245,22 +405,29 @@ function Integrations() {
                 <div className="item-main">
                   <div className="item-icon">{getCategoryIcon(integration.category)}</div>
                   <div className="item-info">
-                    <span className="item-name">{integration.name}</span>
+                    <span className="item-name">
+                      {integration.name}
+                      {integration.instanceName && (
+                        <span className="instance-label"> - {integration.instanceName}</span>
+                      )}
+                    </span>
                     <span className="item-category">{integration.category}</span>
+                    {integration.remarks && (
+                      <span className="item-remarks">{integration.remarks}</span>
+                    )}
                   </div>
                 </div>
                 <div className="item-controls">
                   <div className="control-group">
-                    <label>Qty</label>
+                    <label>Instance</label>
                     <input
-                      type="number"
-                      className="compact-input qty-input"
-                      min="1"
-                      value={integration.quantity || 1}
+                      type="text"
+                      className="compact-input instance-input"
+                      value={integration.instanceName || ''}
                       onChange={(e) => handleUpdateIntegration(integration.id, {
-                        quantity: Math.max(1, parseInt(e.target.value) || 1)
+                        instanceName: e.target.value
                       })}
-                      title="Number of instances (e.g., 3 banks, 2 terminals)"
+                      placeholder="Name..."
                     />
                   </div>
                   <div className="control-group">
@@ -278,7 +445,7 @@ function Integrations() {
                     </select>
                   </div>
                   <div className="control-group">
-                    <label>Hours/Each</label>
+                    <label>Hours</label>
                     <input
                       type="number"
                       className="compact-input"
@@ -290,12 +457,11 @@ function Integrations() {
                     />
                   </div>
                   <div className="control-group estimate">
-                    <label>Total</label>
+                    <label>Estimate</label>
                     <span className="estimate-value">
                       {Math.round(
                         (integration.customHours || integration.baseHours) *
-                        complexityMultipliers[integration.complexity] *
-                        (integration.quantity || 1)
+                        complexityMultipliers[integration.complexity]
                       )}h
                     </span>
                   </div>

@@ -5699,3 +5699,152 @@ body {
   color: var(--text-secondary);
   margin-bottom: 0.25rem;
 }
+
+/* =====================================================
+   Integration Cards - Multiple Instances Support
+   ===================================================== */
+
+.integration-card .card-icon {
+  position: relative;
+}
+
+.integration-card .instance-count-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--primary-color);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.integration-card.has-instances {
+  border-color: var(--primary-color);
+  background: linear-gradient(135deg, #f0f7ff, white);
+}
+
+.integration-card .card-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.integration-card .btn-quick-add {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--primary-color);
+  background: white;
+  color: var(--primary-color);
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.integration-card .btn-quick-add:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+.integration-card .btn-add-details {
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--primary-color);
+  background: var(--primary-color);
+  color: white;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.integration-card .btn-add-details:hover {
+  background: var(--primary-dark);
+}
+
+/* Instance Modal */
+.instance-type-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-color);
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+}
+
+.instance-type-info .type-icon {
+  font-size: 2rem;
+}
+
+.instance-type-info .type-category {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.field-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.estimate-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+  border-radius: var(--radius-md);
+  margin-top: 1rem;
+}
+
+.estimate-preview strong {
+  font-size: 1.25rem;
+  color: var(--success-color);
+}
+
+/* Selected item instance label */
+.selected-item .instance-label {
+  font-weight: 400;
+  color: var(--primary-color);
+}
+
+.selected-item .item-remarks {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 0.15rem;
+}
+
+.selected-item .instance-input {
+  width: 100px !important;
+}
+
+/* Form textarea */
+.form-group textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
