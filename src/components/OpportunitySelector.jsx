@@ -2,6 +2,14 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { CrmService, demoOpportunities, formatCrmCurrency, formatCrmDate } from '../services/crmService';
 
+// State code labels for D365
+const stateCodeLabels = {
+  all: 'All Status',
+  0: 'Open',
+  1: 'Won',
+  2: 'Lost',
+};
+
 function OpportunitySelector({ onSelect, onClose }) {
   const { getCrmAccessToken, isMsalConfigured } = useAuth();
   const [opportunities, setOpportunities] = useState([]);
@@ -9,6 +17,7 @@ function OpportunitySelector({ onSelect, onClose }) {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOpp, setSelectedOpp] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     const fetchOpportunities = async () => {
@@ -17,9 +26,19 @@ function OpportunitySelector({ onSelect, onClose }) {
 
       try {
         if (isMsalConfigured) {
-          // Fetch from real CRM
+          // Fetch from real CRM with status filter
           const crmService = new CrmService(getCrmAccessToken);
-          const data = await crmService.getOpportunities();
+          const filters = {
+            top: 200, // Fetch more records
+          };
+
+          if (statusFilter === 'all') {
+            filters.includeAll = true;
+          } else {
+            filters.stateCode = parseInt(statusFilter);
+          }
+
+          const data = await crmService.getOpportunities(filters);
           setOpportunities(data);
         } else {
           // Use demo data
@@ -37,7 +56,7 @@ function OpportunitySelector({ onSelect, onClose }) {
     };
 
     fetchOpportunities();
-  }, [getCrmAccessToken, isMsalConfigured]);
+  }, [getCrmAccessToken, isMsalConfigured, statusFilter]);
 
   const filteredOpportunities = opportunities.filter(opp =>
     opp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -72,6 +91,17 @@ function OpportunitySelector({ onSelect, onClose }) {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          <div className="status-filter">
+            <label>Status:</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              {Object.entries(stateCodeLabels).map(([code, label]) => (
+                <option key={code} value={code}>{label}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="opportunity-list">
@@ -91,39 +121,45 @@ function OpportunitySelector({ onSelect, onClose }) {
             </div>
           ) : (
             <div className="opportunity-grid">
-              {filteredOpportunities.map(opp => (
-                <div
-                  key={opp.opportunityid}
-                  className={`opportunity-card ${selectedOpp?.opportunityid === opp.opportunityid ? 'selected' : ''}`}
-                  onClick={() => setSelectedOpp(opp)}
-                >
-                  <div className="opp-card-header">
-                    <h4>{opp.name}</h4>
-                    {selectedOpp?.opportunityid === opp.opportunityid && (
-                      <span className="selected-check">✓</span>
-                    )}
+              {filteredOpportunities.map(opp => {
+                const stateLabel = stateCodeLabels[opp.statecode] || 'Open';
+                return (
+                  <div
+                    key={opp.opportunityid}
+                    className={`opportunity-card ${selectedOpp?.opportunityid === opp.opportunityid ? 'selected' : ''}`}
+                    onClick={() => setSelectedOpp(opp)}
+                  >
+                    <div className="opp-card-header">
+                      <h4>{opp.name}</h4>
+                      <div className="opp-header-badges">
+                        <span className={`status-badge status-${opp.statecode || 0}`}>{stateLabel}</span>
+                        {selectedOpp?.opportunityid === opp.opportunityid && (
+                          <span className="selected-check">✓</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="opp-card-body">
+                      <div className="opp-detail">
+                        <span className="opp-label">Account:</span>
+                        <span className="opp-value">{opp.customerid_account?.name || 'N/A'}</span>
+                      </div>
+                      <div className="opp-detail">
+                        <span className="opp-label">Est. Value:</span>
+                        <span className="opp-value opp-currency">
+                          {formatCrmCurrency(opp.estimatedvalue)}
+                        </span>
+                      </div>
+                      <div className="opp-detail">
+                        <span className="opp-label">Close Date:</span>
+                        <span className="opp-value">{formatCrmDate(opp.estimatedclosedate)}</span>
+                      </div>
+                      {opp.description && (
+                        <p className="opp-description">{opp.description}</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="opp-card-body">
-                    <div className="opp-detail">
-                      <span className="opp-label">Account:</span>
-                      <span className="opp-value">{opp.customerid_account?.name || 'N/A'}</span>
-                    </div>
-                    <div className="opp-detail">
-                      <span className="opp-label">Est. Value:</span>
-                      <span className="opp-value opp-currency">
-                        {formatCrmCurrency(opp.estimatedvalue)}
-                      </span>
-                    </div>
-                    <div className="opp-detail">
-                      <span className="opp-label">Close Date:</span>
-                      <span className="opp-value">{formatCrmDate(opp.estimatedclosedate)}</span>
-                    </div>
-                    {opp.description && (
-                      <p className="opp-description">{opp.description}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

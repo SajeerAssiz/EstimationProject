@@ -1995,10 +1995,15 @@ body {
 
 .opportunity-search {
   margin-bottom: 1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .opportunity-search input {
-  width: 100%;
+  flex: 1;
+  min-width: 200px;
   padding: 0.75rem 1rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
@@ -2009,6 +2014,53 @@ body {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.status-filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-filter label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.status-filter select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  min-width: 120px;
+}
+
+.status-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-badge.status-0 {
+  background: #e6f4ea;
+  color: #1e7e34;
+}
+
+.status-badge.status-1 {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.status-2 {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.opp-header-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .opportunity-list {

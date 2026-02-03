@@ -43,8 +43,14 @@ export class CrmService {
     // Expand related entities
     queryParams.push('$expand=customerid_account($select=name),customerid_contact($select=fullname)');
 
-    // Filter by status (open opportunities by default)
-    if (filters.statusCode !== undefined) {
+    // Filter by status
+    // filters.includeAll = true to get all opportunities regardless of status
+    // filters.stateCode = specific state (0=Open, 1=Won, 2=Lost)
+    if (filters.includeAll) {
+      // No filter - get all opportunities
+    } else if (filters.stateCode !== undefined) {
+      queryParams.push(`$filter=statecode eq ${filters.stateCode}`);
+    } else if (filters.statusCode !== undefined) {
       queryParams.push(`$filter=statuscode eq ${filters.statusCode}`);
     } else {
       // Default: Open opportunities (statecode = 0)
@@ -54,11 +60,11 @@ export class CrmService {
     // Order by estimated close date
     queryParams.push('$orderby=estimatedclosedate desc');
 
-    // Limit results
+    // Limit results (increased default to 100)
     if (filters.top) {
       queryParams.push(`$top=${filters.top}`);
     } else {
-      queryParams.push('$top=50');
+      queryParams.push('$top=100');
     }
 
     if (queryParams.length > 0) {
