@@ -1,7 +1,23 @@
+import { useState } from 'react';
 import { useEstimation } from '../context/EstimationContext';
+import { generateEstimationDocument } from '../utils/exportWord';
 
 function Summary() {
   const { state, dispatch, calculations } = useEstimation();
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportWord = async () => {
+    setIsExporting(true);
+    try {
+      const fileName = await generateEstimationDocument(state, calculations);
+      alert(`Document exported: ${fileName}`);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Error exporting document. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
@@ -169,8 +185,15 @@ function Summary() {
           <button className="btn-secondary" onClick={handleExportCSV}>
             Export CSV
           </button>
-          <button className="btn-primary" onClick={handleExportJSON}>
+          <button className="btn-secondary" onClick={handleExportJSON}>
             Export JSON
+          </button>
+          <button
+            className="btn-primary"
+            onClick={handleExportWord}
+            disabled={isExporting}
+          >
+            {isExporting ? 'Exporting...' : 'Export Word'}
           </button>
           <button className="btn-danger" onClick={handleResetEstimation}>
             Reset
