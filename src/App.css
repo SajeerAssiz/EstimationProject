@@ -4730,3 +4730,375 @@ body {
   box-shadow: var(--shadow-md);
   border-color: var(--primary-color);
 }
+
+/* ========================================
+   Document Formats Table Styles
+   ======================================== */
+
+.doc-format-table-header {
+  display: grid;
+  grid-template-columns: 50px 110px 1fr 100px 140px 1fr 40px;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #4a7c4e;
+  color: white;
+  font-weight: 600;
+  font-size: 0.8rem;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  align-items: center;
+}
+
+.doc-format-list {
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.doc-format-row {
+  display: grid !important;
+  grid-template-columns: 50px 110px 1fr 100px 140px 1fr 40px;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem !important;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.doc-format-row:last-child {
+  border-bottom: none;
+}
+
+.doc-format-row:hover {
+  background: #f8f9fa;
+}
+
+.doc-format-row .col-slno {
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.doc-format-row .module-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--primary-light);
+  color: var(--primary-color);
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.doc-format-row .col-name {
+  font-weight: 500;
+  color: var(--text-color);
+  font-size: 0.9rem;
+}
+
+.doc-format-row .col-hours {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.doc-format-row .hours-estimate {
+  font-size: 0.75rem;
+  color: var(--primary-color);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.doc-format-row .remarks-input {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  background: #f9fafb;
+}
+
+.doc-format-row .remarks-input:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  background: white;
+}
+
+.doc-format-row .col-action {
+  text-align: center;
+}
+
+/* ========================================
+   Resource Loading / Costing Tool Styles
+   ======================================== */
+
+.resource-loading-modern {
+  padding: 1.5rem;
+}
+
+.resource-loading-modern .section-header {
+  margin-bottom: 1.5rem;
+}
+
+/* Resource Table */
+.resource-table-container {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+}
+
+.resource-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  min-width: 1200px;
+}
+
+.resource-table th,
+.resource-table td {
+  padding: 0.6rem 0.5rem;
+  text-align: center;
+  border: 1px solid #d4d4d4;
+}
+
+.resource-table thead tr:first-child th {
+  background: #365f3b;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.75rem;
+}
+
+.resource-table thead tr:nth-child(2) th {
+  background: #4a7c4e;
+  color: white;
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+.resource-table tbody tr:nth-child(even) {
+  background: #f8f9fa;
+}
+
+.resource-table tbody tr:hover {
+  background: #e8f4fd;
+}
+
+.resource-table .consultant-type-cell {
+  text-align: left;
+  font-weight: 500;
+  padding-left: 1rem;
+  min-width: 180px;
+  background: #fafafa;
+}
+
+.resource-table .location-select {
+  padding: 0.3rem 0.4rem;
+  border: 1px solid #d4d4d4;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  background: white;
+  width: 85px;
+}
+
+.resource-table .days-input {
+  width: 55px;
+  padding: 0.3rem;
+  border: 1px solid #d4d4d4;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.resource-table .days-input:focus,
+.resource-table .location-select:focus {
+  border-color: var(--primary-color);
+  outline: none;
+}
+
+.resource-table .cost-cell {
+  font-weight: 600;
+  color: var(--primary-color);
+  min-width: 80px;
+}
+
+.resource-table .phase-header {
+  min-width: 200px;
+}
+
+.resource-table .total-row {
+  background: #f0f0f0 !important;
+  font-weight: 700;
+}
+
+.resource-table .total-row td {
+  border-top: 2px solid #365f3b;
+}
+
+.resource-table .grand-total-row {
+  background: #365f3b !important;
+  color: white;
+}
+
+.resource-table .grand-total-row td {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+/* Rate Card Section */
+.rate-card-section {
+  background: var(--bg-color);
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  margin-top: 1.5rem;
+}
+
+.rate-card-section h4 {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rate-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.rate-card-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: white;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.rate-card-item .role-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.rate-card-item .rate-inputs {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.rate-card-item .rate-input {
+  width: 80px;
+  padding: 0.4rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.rate-card-item .rate-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Resource Summary Cards */
+.resource-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.resource-summary-card {
+  background: white;
+  padding: 1.25rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.resource-summary-card.highlight {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  color: white;
+  border: none;
+}
+
+.resource-summary-card .summary-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.resource-summary-card.highlight .summary-label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.resource-summary-card .summary-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.resource-summary-card.highlight .summary-value {
+  color: white;
+}
+
+.resource-summary-card .summary-unit {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.resource-summary-card.highlight .summary-unit {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Add Resource Button */
+.add-resource-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.add-resource-btn:hover {
+  background: var(--primary-dark);
+}
+
+.resource-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Remove button in table */
+.resource-table .remove-btn {
+  background: none;
+  border: none;
+  color: var(--danger-color);
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+
+.resource-table .remove-btn:hover {
+  background: var(--danger-color);
+  color: white;
+}
+
+/* Responsive for Resource Table */
+@media (max-width: 1024px) {
+  .resource-table-container {
+    margin: 0 -1rem;
+    padding: 0 1rem;
+  }
+}

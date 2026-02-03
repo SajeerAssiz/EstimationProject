@@ -14,6 +14,7 @@ import DataMigration from './components/DataMigration';
 import ReportsBI from './components/ReportsBI';
 import AddonsSupport from './components/AddonsSupport';
 import CustomDevelopments from './components/CustomDevelopments';
+import ResourceLoading from './components/ResourceLoading';
 import WBSProjectPlan from './components/WBSProjectPlan';
 import Summary from './components/Summary';
 import './App.css';
@@ -40,6 +41,8 @@ function EstimationApp() {
         return <AddonsSupport />;
       case 'customdev':
         return <CustomDevelopments />;
+      case 'resources':
+        return <ResourceLoading />;
       case 'plan':
         return <WBSProjectPlan />;
       case 'summary':

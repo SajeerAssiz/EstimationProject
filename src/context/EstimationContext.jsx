@@ -25,6 +25,7 @@ const getInitialState = () => ({
   integrations: [],
   reports: [],
   biDashboards: [],
+  documentFormats: [], // Outgoing document formats (PO, Invoice, etc.)
   addons: [],
   support: {
     type: null,
@@ -32,6 +33,7 @@ const getInitialState = () => ({
   },
   customItems: [],
   dataMigrations: [],
+  resourceLoading: null, // Resource loading and costing data
   wbsData: [],
   projectPlan: {
     phases: projectPhases.map(p => ({ ...p, enabled: true })),
@@ -229,6 +231,32 @@ function estimationReducer(state, action) {
         )
       };
 
+    // Document Format Actions (Outgoing Documents)
+    case 'ADD_DOCUMENT_FORMAT':
+      return {
+        ...state,
+        documentFormats: [...state.documentFormats, {
+          ...action.payload,
+          id: uuidv4(),
+          customHours: null,
+          notes: ''
+        }]
+      };
+
+    case 'REMOVE_DOCUMENT_FORMAT':
+      return {
+        ...state,
+        documentFormats: state.documentFormats.filter(d => d.id !== action.payload)
+      };
+
+    case 'UPDATE_DOCUMENT_FORMAT':
+      return {
+        ...state,
+        documentFormats: state.documentFormats.map(d =>
+          d.id === action.payload.id ? { ...d, ...action.payload.updates } : d
+        )
+      };
+
     case 'ADD_ADDON':
       return {
         ...state,
@@ -308,6 +336,13 @@ function estimationReducer(state, action) {
         dataMigrations: state.dataMigrations.map(d =>
           d.id === action.payload.id ? { ...d, ...action.payload.updates } : d
         )
+      };
+
+    // Resource Loading Actions
+    case 'UPDATE_RESOURCE_LOADING':
+      return {
+        ...state,
+        resourceLoading: action.payload
       };
 
     // WBS Project Plan Actions
@@ -484,6 +519,14 @@ export function EstimationProvider({ children }) {
     }, 0);
   }, [state.biDashboards]);
 
+  const calculateDocumentFormatHours = useCallback(() => {
+    return (state.documentFormats || []).reduce((total, doc) => {
+      const hours = doc.customHours || doc.baseHours || 0;
+      const multiplier = complexityMultipliers[doc.complexity] || 1;
+      return total + (hours * multiplier);
+    }, 0);
+  }, [state.documentFormats]);
+
   const calculateAddonHours = useCallback(() => {
     return state.addons.reduce((total, addon) => {
       return total + (addon.customHours || addon.baseHours);
@@ -512,6 +555,7 @@ export function EstimationProvider({ children }) {
       calculateIntegrationHours() +
       calculateReportHours() +
       calculateBIHours() +
+      calculateDocumentFormatHours() +
       calculateAddonHours() +
       calculateCustomItemHours() +
       calculateDataMigrationHours();
@@ -523,6 +567,7 @@ export function EstimationProvider({ children }) {
     calculateIntegrationHours,
     calculateReportHours,
     calculateBIHours,
+    calculateDocumentFormatHours,
     calculateAddonHours,
     calculateCustomItemHours,
     calculateDataMigrationHours,
@@ -578,6 +623,7 @@ export function EstimationProvider({ children }) {
       integrationHours: calculateIntegrationHours(),
       reportHours: calculateReportHours(),
       biHours: calculateBIHours(),
+      documentFormatHours: calculateDocumentFormatHours(),
       addonHours: calculateAddonHours(),
       customItemHours: calculateCustomItemHours(),
       dataMigrationHours: calculateDataMigrationHours(),
@@ -595,6 +641,7 @@ export function EstimationProvider({ children }) {
       integrationEstimate: formatEstimate(calculateIntegrationHours()),
       reportEstimate: formatEstimate(calculateReportHours()),
       biEstimate: formatEstimate(calculateBIHours()),
+      documentFormatEstimate: formatEstimate(calculateDocumentFormatHours()),
       addonEstimate: formatEstimate(calculateAddonHours()),
       customItemEstimate: formatEstimate(calculateCustomItemHours()),
       dataMigrationEstimate: formatEstimate(calculateDataMigrationHours()),

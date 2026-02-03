@@ -8,6 +8,7 @@ function Navigation({ activeSection, onSectionChange }) {
     { id: 'reports', label: 'Reports & BI', icon: '📊' },
     { id: 'addons', label: 'Add-ons & Support', icon: '🧩' },
     { id: 'customdev', label: 'Custom Development', icon: '⚙️' },
+    { id: 'resources', label: 'Resource Loading', icon: '👥' },
     { id: 'plan', label: 'Project Plan', icon: '📅' },
     { id: 'summary', label: 'Summary', icon: '✅' }
   ];
