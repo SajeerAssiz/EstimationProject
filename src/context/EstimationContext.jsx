@@ -30,6 +30,7 @@ const getInitialState = () => ({
   },
   customItems: [],
   dataMigrations: [],
+  wbsData: [],
   projectPlan: {
     phases: projectPhases.map(p => ({ ...p, enabled: true })),
     teamMembers: []
@@ -303,6 +304,13 @@ function estimationReducer(state, action) {
         dataMigrations: state.dataMigrations.map(d =>
           d.id === action.payload.id ? { ...d, ...action.payload.updates } : d
         )
+      };
+
+    // WBS Project Plan Actions
+    case 'SET_WBS_DATA':
+      return {
+        ...state,
+        wbsData: action.payload
       };
 
     case 'TOGGLE_PHASE':

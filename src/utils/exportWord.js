@@ -79,6 +79,7 @@ export const generateEstimationDocument = async (state, calculations) => {
     addons,
     support,
     customItems,
+    wbsData = [],
     projectPlan,
   } = state;
 
@@ -629,35 +630,111 @@ export const generateEstimationDocument = async (state, calculations) => {
 
   sections.push(new Paragraph({ children: [new PageBreak()] }));
 
-  // ===== PROJECT PHASES =====
+  // ===== WBS PROJECT PLAN =====
   sections.push(
     new Paragraph({ spacing: { after: 400 } }),
-    createHeading('Project Phases', HeadingLevel.HEADING_1),
-    createParagraph('The implementation will follow these phases:'),
+    createHeading('WBS Project Plan', HeadingLevel.HEADING_1),
+    createParagraph('Detailed Work Breakdown Structure for the implementation:'),
     new Paragraph({ spacing: { after: 200 } })
   );
 
-  const enabledPhases = projectPlan.phases.filter((p) => p.enabled);
-  if (enabledPhases.length > 0) {
+  if (wbsData && wbsData.length > 0) {
+    // Calculate WBS totals
+    let totalDays = 0;
+    let totalManDays = 0;
+    wbsData.forEach(item => {
+      if (item.level === 3 && item.days > 0) {
+        totalDays += item.days;
+        totalManDays += item.days * (item.resources || 1);
+      }
+    });
+
+    // Create WBS table
+    const wbsRows = [
+      createRow(['WBS ID', 'Task', 'Location', 'Days', 'Resources', 'Man-days'], true)
+    ];
+
+    wbsData.forEach(item => {
+      if (item.level === 1) {
+        // Phase header
+        wbsRows.push(
+          new TableRow({
+            children: [
+              createCell(item.wbsId, { bold: true, shading: '2C5282' }),
+              createCell(item.task, { bold: true, shading: '2C5282' }),
+              createCell('', { shading: '2C5282' }),
+              createCell('', { shading: '2C5282' }),
+              createCell('', { shading: '2C5282' }),
+              createCell('', { shading: '2C5282' }),
+            ].map(cell => {
+              cell.children[0].children[0].color = 'FFFFFF';
+              return cell;
+            }),
+          })
+        );
+      } else if (item.level === 2) {
+        // Group header
+        wbsRows.push(
+          new TableRow({
+            children: [
+              createCell(item.wbsId, { bold: true, shading: 'BEE3F8' }),
+              createCell(item.task, { bold: true, shading: 'BEE3F8' }),
+              createCell('', { shading: 'BEE3F8' }),
+              createCell('', { shading: 'BEE3F8' }),
+              createCell('', { shading: 'BEE3F8' }),
+              createCell('', { shading: 'BEE3F8' }),
+            ],
+          })
+        );
+      } else if (item.level === 3) {
+        // Task row
+        const manDays = (item.days || 0) * (item.resources || 1);
+        wbsRows.push(
+          createRow([
+            item.wbsId,
+            `    ${item.task}`,
+            item.location || 'Mixed',
+            item.days || 0,
+            item.resources || 1,
+            manDays
+          ])
+        );
+      }
+    });
+
+    // Total row
+    wbsRows.push(createRow(['', 'TOTAL', '', totalDays, '', totalManDays]));
+
     sections.push(
       new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
-        rows: [
-          createRow(['Phase', 'Description', '% of Total', 'Hours', 'Days'], true),
-          ...enabledPhases.map((p) => {
-            const hours = Math.round(calculations.totalHours * (p.percentOfTotal / 100));
-            return createRow([
-              p.name || '',
-              p.description || '',
-              `${p.percentOfTotal}%`,
-              formatNumber(hours),
-              formatNumber(Math.round(hours / 8)),
-            ]);
-          }),
-          createRow(['TOTAL', '', '100%', formatNumber(calculations.totalHours), formatNumber(Math.round(calculations.totalHours / 8))]),
-        ],
+        rows: wbsRows,
       })
     );
+  } else {
+    // Fallback to old phases structure
+    const enabledPhases = projectPlan.phases.filter((p) => p.enabled);
+    if (enabledPhases.length > 0) {
+      sections.push(
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            createRow(['Phase', 'Description', '% of Total', 'Hours', 'Days'], true),
+            ...enabledPhases.map((p) => {
+              const hours = Math.round(calculations.totalHours * (p.percentOfTotal / 100));
+              return createRow([
+                p.name || '',
+                p.description || '',
+                `${p.percentOfTotal}%`,
+                formatNumber(hours),
+                formatNumber(Math.round(hours / 8)),
+              ]);
+            }),
+            createRow(['TOTAL', '', '100%', formatNumber(calculations.totalHours), formatNumber(Math.round(calculations.totalHours / 8))]),
+          ],
+        })
+      );
+    }
   }
 
   sections.push(new Paragraph({ children: [new PageBreak()] }));
@@ -704,6 +781,7 @@ export const generateEstimationDocument = async (state, calculations) => {
   }
 
   // ===== RESOURCE LOADING BY PHASE =====
+  const enabledPhases = projectPlan.phases.filter((p) => p.enabled);
   if (projectPlan.teamMembers.length > 0 && enabledPhases.length > 0) {
     sections.push(
       new Paragraph({ spacing: { after: 400 } }),

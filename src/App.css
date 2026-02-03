@@ -3192,3 +3192,462 @@ body {
   margin-bottom: 1rem;
   color: var(--text-secondary);
 }
+
+/* =====================================================
+   WBS Project Plan Styles
+   ===================================================== */
+
+.wbs-project-plan .wbs-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.active-modules-info {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.module-tag {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.wbs-table-container {
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  margin-bottom: 2rem;
+}
+
+.wbs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  min-width: 1000px;
+}
+
+.wbs-table th {
+  padding: 0.75rem 0.5rem;
+  background: #1a365d;
+  color: white;
+  font-weight: 500;
+  text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.2);
+  white-space: nowrap;
+}
+
+.wbs-table th:last-child {
+  border-right: none;
+}
+
+.wbs-table th.col-wbs { width: 80px; text-align: left; padding-left: 1rem; }
+.wbs-table th.col-level { width: 50px; }
+.wbs-table th.col-task { text-align: left; min-width: 250px; }
+.wbs-table th.col-location { width: 110px; }
+.wbs-table th.col-days { width: 90px; }
+.wbs-table th.col-resources { width: 100px; }
+.wbs-table th.col-mandays { width: 100px; }
+.wbs-table th.col-remarks { min-width: 120px; }
+.wbs-table th.col-actions { width: 50px; }
+
+.wbs-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  text-align: center;
+  vertical-align: middle;
+}
+
+.wbs-table td:last-child {
+  border-right: none;
+}
+
+.wbs-table td.col-wbs,
+.wbs-table td.col-task {
+  text-align: left;
+}
+
+.wbs-table td.col-wbs {
+  padding-left: 0.5rem;
+}
+
+/* Row levels */
+.wbs-row.level-1 {
+  background: #2c5282;
+  color: white;
+}
+
+.wbs-row.level-1 td {
+  border-bottom-color: rgba(255,255,255,0.3);
+}
+
+.wbs-row.level-2 {
+  background: #bee3f8;
+}
+
+.wbs-row.level-3 {
+  background: var(--card-bg);
+}
+
+.wbs-row.level-3:hover {
+  background: var(--bg-color);
+}
+
+/* Phase row */
+.phase-row td {
+  font-weight: 600;
+  padding: 0.75rem 0.5rem;
+}
+
+.phase-row .phase-name {
+  font-size: 1rem;
+}
+
+/* Group row */
+.group-row td {
+  font-weight: 500;
+  background: #e2e8f0;
+}
+
+.group-row .group-name {
+  color: var(--text-color);
+}
+
+/* Expand button */
+.expand-btn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0.25rem;
+  margin-right: 0.5rem;
+}
+
+.wbs-id {
+  font-family: 'Consolas', monospace;
+  font-weight: 600;
+}
+
+/* Input fields */
+.wbs-table .task-input {
+  width: 100%;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.wbs-table .location-select {
+  padding: 0.25rem;
+  font-size: 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  min-width: 80px;
+}
+
+.wbs-table .days-input,
+.wbs-table .resources-input {
+  width: 60px;
+  padding: 0.25rem;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.wbs-table .remarks-input {
+  width: 100%;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+}
+
+.mandays-value {
+  font-weight: 500;
+  color: var(--primary-color);
+}
+
+.subtotal {
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.wbs-table tfoot .total-row td {
+  background: var(--primary-color);
+  color: white;
+  font-size: 0.95rem;
+  padding: 0.75rem;
+}
+
+/* Action buttons in WBS */
+.btn-add {
+  background: var(--success-color);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.btn-add:hover {
+  background: #0b5c0b;
+}
+
+.btn-delete {
+  background: var(--danger-color);
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.btn-delete:hover {
+  background: #a4262c;
+}
+
+/* WBS Summary */
+.wbs-summary {
+  margin-top: 2rem;
+}
+
+.wbs-summary h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.phase-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.phase-summary-card {
+  background: var(--bg-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  text-align: center;
+  border: 1px solid var(--border-color);
+}
+
+.phase-summary-card .phase-id {
+  background: var(--primary-color);
+  color: white;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.phase-summary-card .phase-name {
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.phase-summary-card .phase-stats {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.phase-summary-card .stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.phase-summary-card .stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  line-height: 1;
+}
+
+.phase-summary-card .stat-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+/* Summary - Legal Entity Breakdown */
+.legal-entity-summary {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.legal-entity-summary h3 {
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.legal-entity-summary .section-description {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1.25rem;
+}
+
+.entity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.entity-summary-card {
+  background: var(--bg-color);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  transition: box-shadow 0.2s;
+}
+
+.entity-summary-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.entity-summary-card .entity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.entity-summary-card .entity-code {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--primary-dark);
+}
+
+.entity-summary-card .business-type {
+  font-size: 0.7rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  text-transform: capitalize;
+}
+
+.entity-summary-card .entity-name {
+  font-size: 0.9rem;
+  color: var(--text-color);
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+}
+
+.entity-summary-card .entity-stats {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.entity-summary-card .stat {
+  text-align: center;
+}
+
+.entity-summary-card .stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  display: block;
+}
+
+.entity-summary-card .stat-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.entity-summary-card .entity-phase {
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Summary - WBS Summary Section */
+.wbs-summary-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.wbs-summary-section h3 {
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+}
+
+.wbs-totals {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.wbs-total-card {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  color: white;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-md);
+  text-align: center;
+  min-width: 120px;
+}
+
+.wbs-total-value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.wbs-total-label {
+  display: block;
+  font-size: 0.8rem;
+  opacity: 0.9;
+  text-transform: uppercase;
+}
+
+.wbs-phase-table {
+  width: 100%;
+}
+
+.wbs-phase-table thead th {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+.wbs-phase-table tbody td:first-child {
+  text-align: left;
+}
+
+.wbs-phase-table tfoot tr.total-row {
+  background: var(--primary-light);
+}
+
+.wbs-phase-table tfoot tr.total-row td {
+  font-weight: 700;
+  color: var(--primary-dark);
+}

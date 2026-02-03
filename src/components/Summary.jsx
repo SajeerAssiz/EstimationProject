@@ -1,10 +1,72 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useEstimation } from '../context/EstimationContext';
 import { generateEstimationDocument } from '../utils/exportWord';
+import { complexityMultipliers } from '../data/d365Modules';
 
 function Summary() {
   const { state, dispatch, calculations } = useEstimation();
   const [isExporting, setIsExporting] = useState(false);
+
+  // Calculate WBS totals
+  const wbsTotals = useMemo(() => {
+    if (!state.wbsData || state.wbsData.length === 0) return null;
+
+    let totalDays = 0;
+    let totalManDays = 0;
+    const phaseData = {};
+
+    state.wbsData.forEach(item => {
+      if (item.level === 3 && item.days > 0) {
+        totalDays += item.days;
+        totalManDays += item.days * (item.resources || 1);
+      }
+
+      const phaseId = item.wbsId.split('.')[0];
+      if (!phaseData[phaseId]) {
+        phaseData[phaseId] = { days: 0, manDays: 0, name: '' };
+      }
+      if (item.level === 1) {
+        phaseData[phaseId].name = item.task;
+      }
+      if (item.level === 3 && item.days > 0) {
+        phaseData[phaseId].days += item.days;
+        phaseData[phaseId].manDays += item.days * (item.resources || 1);
+      }
+    });
+
+    return { totalDays, totalManDays, phaseData };
+  }, [state.wbsData]);
+
+  // Calculate hours per legal entity
+  const entityBreakdown = useMemo(() => {
+    if (!state.legalEntities || state.legalEntities.length === 0) return null;
+
+    const breakdown = {};
+    const activeEntities = state.legalEntities.filter(le => le.isActive);
+
+    activeEntities.forEach(entity => {
+      const entityModules = state.moduleMatrix?.[entity.id] || {};
+      let entityHours = 0;
+      let moduleCount = 0;
+
+      Object.entries(entityModules).forEach(([key, data]) => {
+        if (data.selected) {
+          const hours = data.customHours || data.baseHours || 0;
+          const multiplier = complexityMultipliers[data.complexity] || 1;
+          entityHours += hours * multiplier;
+          moduleCount++;
+        }
+      });
+
+      breakdown[entity.id] = {
+        entity,
+        hours: Math.round(entityHours),
+        moduleCount
+      };
+    });
+
+    return breakdown;
+  }, [state.legalEntities, state.moduleMatrix]);
 
   const handleExportWord = async () => {
     setIsExporting(true);
@@ -41,6 +103,8 @@ function Summary() {
   const handleExportJSON = () => {
     const exportData = {
       projectInfo: state.projectInfo,
+      legalEntities: state.legalEntities,
+      moduleMatrix: state.moduleMatrix,
       estimation: {
         modules: state.selectedModules,
         integrations: state.integrations,
@@ -53,6 +117,7 @@ function Summary() {
       },
       calculations: {
         moduleHours: calculations.moduleHours,
+        moduleMatrixBreakdown: calculations.moduleMatrixBreakdown,
         integrationHours: calculations.integrationHours,
         dataMigrationHours: calculations.dataMigrationHours || 0,
         reportHours: calculations.reportHours,
@@ -65,6 +130,8 @@ function Summary() {
         totalHours: calculations.totalHours,
         teamCost: calculations.teamCost
       },
+      wbsData: state.wbsData,
+      wbsTotals: wbsTotals,
       projectPlan: state.projectPlan,
       phaseBreakdown: calculations.phaseHours,
       exportDate: new Date().toISOString()
@@ -86,12 +153,35 @@ function Summary() {
   const handleExportCSV = () => {
     let csv = 'Category,Item,Quantity,Base Hours,Complexity,Total Hours,Notes\n';
 
-    // Modules
-    state.selectedModules.forEach(m => {
-      const hours = m.customHours || m.baseHours;
-      const multiplier = { low: 1, medium: 1.3, high: 1.6 }[m.complexity] || 1;
-      csv += `Modules,"${m.name}",1,${hours},${m.complexity},${Math.round(hours * multiplier)},"${m.notes || ''}"\n`;
-    });
+    // Legal Entities Summary
+    if (entityBreakdown && Object.keys(entityBreakdown).length > 0) {
+      csv += '\nLegal Entity,Code,Business Type,Modules,Hours\n';
+      Object.values(entityBreakdown).forEach(({ entity, hours, moduleCount }) => {
+        csv += `"${entity.name}",${entity.code},${entity.businessType},${moduleCount},${hours}\n`;
+      });
+      csv += '\n';
+    }
+
+    // Modules (from matrix or traditional)
+    if (state.legalEntities?.length > 0 && state.moduleMatrix) {
+      csv += '\nEntity,Module,Complexity,Hours\n';
+      state.legalEntities.filter(le => le.isActive).forEach(entity => {
+        const entityModules = state.moduleMatrix[entity.id] || {};
+        Object.entries(entityModules).forEach(([key, data]) => {
+          if (data.selected) {
+            const hours = data.customHours || data.baseHours || 0;
+            const multiplier = complexityMultipliers[data.complexity] || 1;
+            csv += `"${entity.code}","${data.name || key}",${data.complexity},${Math.round(hours * multiplier)}\n`;
+          }
+        });
+      });
+    } else {
+      state.selectedModules.forEach(m => {
+        const hours = m.customHours || m.baseHours;
+        const multiplier = { low: 1, medium: 1.3, high: 1.6 }[m.complexity] || 1;
+        csv += `Modules,"${m.name}",1,${hours},${m.complexity},${Math.round(hours * multiplier)},"${m.notes || ''}"\n`;
+      });
+    }
 
     // Integrations
     state.integrations.forEach(i => {
@@ -99,6 +189,15 @@ function Summary() {
       const multiplier = { low: 1, medium: 1.3, high: 1.6 }[i.complexity] || 1;
       csv += `Integrations,"${i.name}",1,${hours},${i.complexity},${Math.round(hours * multiplier)},"${i.notes || ''}"\n`;
     });
+
+    // Data Migration
+    if (state.dataMigrations?.length > 0) {
+      csv += '\nData Migration\n';
+      csv += 'Entity,Source System,Complexity,Volume,Hours\n';
+      state.dataMigrations.forEach(m => {
+        csv += `"${m.entityName}","${m.sourceSystem || '-'}",${m.complexity},${m.volume},${m.hours}\n`;
+      });
+    }
 
     // Reports
     state.reports.forEach(r => {
@@ -124,10 +223,21 @@ function Summary() {
       csv += `Custom,"${c.name}",1,${c.hours},-,${c.hours},"${c.notes || ''}"\n`;
     });
 
+    // WBS Summary
+    if (wbsTotals) {
+      csv += '\nWBS Project Plan Summary\n';
+      csv += 'Phase,Days,Man-Days,Hours\n';
+      Object.entries(wbsTotals.phaseData).forEach(([phaseId, data]) => {
+        csv += `"${phaseId} - ${data.name}",${data.days},${data.manDays},${data.manDays * 8}\n`;
+      });
+      csv += `Total,${wbsTotals.totalDays},${wbsTotals.totalManDays},${wbsTotals.totalManDays * 8}\n`;
+    }
+
     // Summary
     csv += '\n\nSummary\n';
     csv += `Module Hours,${calculations.moduleHours}\n`;
     csv += `Integration Hours,${calculations.integrationHours}\n`;
+    csv += `Data Migration Hours,${calculations.dataMigrationHours || 0}\n`;
     csv += `Report Hours,${calculations.reportHours}\n`;
     csv += `BI Hours,${calculations.biHours}\n`;
     csv += `Add-on Hours,${calculations.addonHours}\n`;
@@ -217,11 +327,49 @@ function Summary() {
           )}
         </div>
 
+        {/* Legal Entity Overview */}
+        {entityBreakdown && Object.keys(entityBreakdown).length > 0 && (
+          <div className="legal-entity-summary">
+            <h3>Legal Entity Estimation</h3>
+            <p className="section-description">
+              Module hours breakdown by legal entity. Total: {calculations.moduleHours.toLocaleString()} hours
+            </p>
+            <div className="entity-grid">
+              {Object.values(entityBreakdown).map(({ entity, hours, moduleCount }) => (
+                <div key={entity.id} className="entity-summary-card">
+                  <div className="entity-header">
+                    <span className="entity-code">{entity.code}</span>
+                    <span className={`business-type ${entity.businessType}`}>{entity.businessType}</span>
+                  </div>
+                  <div className="entity-name">{entity.name}</div>
+                  <div className="entity-stats">
+                    <div className="stat">
+                      <span className="stat-value">{moduleCount}</span>
+                      <span className="stat-label">Modules</span>
+                    </div>
+                    <div className="stat">
+                      <span className="stat-value">{hours.toLocaleString()}</span>
+                      <span className="stat-label">Hours</span>
+                    </div>
+                    <div className="stat">
+                      <span className="stat-value">{Math.round(hours / 8)}</span>
+                      <span className="stat-label">Days</span>
+                    </div>
+                  </div>
+                  {entity.rolloutPhase && (
+                    <div className="entity-phase">Phase {entity.rolloutPhase}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="summary-grid">
           <div className="summary-card">
-            <h4>Scope Modules</h4>
-            <div className="summary-value">{state.selectedModules.length}</div>
-            <div className="summary-hours">{calculations.moduleHours.toLocaleString()} hours</div>
+            <h4>Legal Entities</h4>
+            <div className="summary-value">{state.legalEntities?.filter(le => le.isActive).length || 0}</div>
+            <div className="summary-hours">{calculations.moduleHours.toLocaleString()} module hours</div>
           </div>
 
           <div className="summary-card">
@@ -337,27 +485,79 @@ function Summary() {
           </div>
         </div>
 
-        <div className="phase-summary">
-          <h3>Phase Distribution</h3>
-          <table className="phase-table">
-            <thead>
-              <tr>
-                <th>Phase</th>
-                <th>%</th>
-                <th>Hours</th>
-              </tr>
-            </thead>
-            <tbody>
-              {calculations.phaseHours.map(phase => (
-                <tr key={phase.id}>
-                  <td>{phase.name}</td>
-                  <td>{phase.percentOfTotal}%</td>
-                  <td>{phase.hours.toLocaleString()}</td>
+        {/* WBS Summary */}
+        {wbsTotals && (
+          <div className="wbs-summary-section">
+            <h3>WBS Project Plan Summary</h3>
+            <div className="wbs-totals">
+              <div className="wbs-total-card">
+                <span className="wbs-total-value">{wbsTotals.totalDays}</span>
+                <span className="wbs-total-label">Total Days</span>
+              </div>
+              <div className="wbs-total-card">
+                <span className="wbs-total-value">{wbsTotals.totalManDays}</span>
+                <span className="wbs-total-label">Man-Days</span>
+              </div>
+              <div className="wbs-total-card">
+                <span className="wbs-total-value">{Math.round(wbsTotals.totalManDays * 8)}</span>
+                <span className="wbs-total-label">Total Hours</span>
+              </div>
+            </div>
+            <table className="phase-table wbs-phase-table">
+              <thead>
+                <tr>
+                  <th>Phase</th>
+                  <th>Days</th>
+                  <th>Man-Days</th>
+                  <th>Hours</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {Object.entries(wbsTotals.phaseData).map(([phaseId, data]) => (
+                  <tr key={phaseId}>
+                    <td><strong>{phaseId}</strong> - {data.name}</td>
+                    <td>{data.days}</td>
+                    <td>{data.manDays}</td>
+                    <td>{(data.manDays * 8).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="total-row">
+                  <td><strong>Total</strong></td>
+                  <td><strong>{wbsTotals.totalDays}</strong></td>
+                  <td><strong>{wbsTotals.totalManDays}</strong></td>
+                  <td><strong>{(wbsTotals.totalManDays * 8).toLocaleString()}</strong></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+
+        {/* Legacy Phase Distribution (when WBS not used) */}
+        {!wbsTotals && calculations.phaseHours && calculations.phaseHours.length > 0 && (
+          <div className="phase-summary">
+            <h3>Phase Distribution</h3>
+            <table className="phase-table">
+              <thead>
+                <tr>
+                  <th>Phase</th>
+                  <th>%</th>
+                  <th>Hours</th>
+                </tr>
+              </thead>
+              <tbody>
+                {calculations.phaseHours.map(phase => (
+                  <tr key={phase.id}>
+                    <td>{phase.name}</td>
+                    <td>{phase.percentOfTotal}%</td>
+                    <td>{phase.hours.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {(state.selectedModules.length > 0 || state.integrations.length > 0) && (
           <div className="detail-lists">
