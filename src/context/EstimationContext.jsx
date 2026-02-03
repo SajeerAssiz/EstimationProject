@@ -375,8 +375,23 @@ function estimationReducer(state, action) {
     case 'RESET_ESTIMATION':
       return getInitialState();
 
-    case 'LOAD_ESTIMATION':
-      return action.payload || getInitialState();
+    case 'LOAD_ESTIMATION': {
+      // Merge loaded data with initial state to fill missing fields
+      const initialState = getInitialState();
+      const loaded = action.payload || {};
+      return {
+        ...initialState,
+        ...loaded,
+        projectInfo: { ...initialState.projectInfo, ...(loaded.projectInfo || {}) },
+        support: { ...initialState.support, ...(loaded.support || {}) },
+        projectPlan: {
+          ...initialState.projectPlan,
+          ...(loaded.projectPlan || {}),
+          phases: loaded.projectPlan?.phases || initialState.projectPlan.phases,
+          teamMembers: loaded.projectPlan?.teamMembers || []
+        }
+      };
+    }
 
     default:
       return state;

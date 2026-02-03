@@ -16,6 +16,8 @@ const getInitialEstimationState = () => ({
     currency: 'USD',
     contingencyPercent: 15
   },
+  legalEntities: [],
+  moduleMatrix: {},
   selectedModules: [],
   integrations: [],
   reports: [],
@@ -26,6 +28,8 @@ const getInitialEstimationState = () => ({
     durationMonths: 12
   },
   customItems: [],
+  dataMigrations: [],
+  wbsData: [],
   projectPlan: {
     phases: projectPhases.map(p => ({ ...p, enabled: true })),
     teamMembers: []
