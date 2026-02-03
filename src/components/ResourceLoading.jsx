@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useEstimation } from '../context/EstimationContext';
 
 // Default consultant types with pre-populated data matching Excel format

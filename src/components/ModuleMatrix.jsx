@@ -242,7 +242,11 @@ function ModuleMatrix() {
                       );
                     })}
                     <td className="module-total-cell">
-                      {totalForModule > 0 && `${Math.round(totalForModule).toLocaleString()}h`}
+                      {totalForModule > 0 ? (
+                        <span className="module-total-hours">{Math.round(totalForModule).toLocaleString()}h</span>
+                      ) : (
+                        <span className="empty-hours">-</span>
+                      )}
                     </td>
                   </tr>
                   {isExpanded && moduleData.subModules.map(subModule => {
@@ -267,6 +271,10 @@ function ModuleMatrix() {
                           const moduleData = getModuleData(entity.id, moduleId, subModule.id);
                           const moduleKey = `${moduleId}_${subModule.id}`;
 
+                          const entityHours = isSelected
+                            ? Math.round((moduleData.customHours || moduleData.baseHours || subModule.baseHours) * (complexityMultipliers[moduleData.complexity] || 1))
+                            : 0;
+
                           return (
                             <td key={entity.id} className="matrix-cell">
                               <div className="cell-content">
@@ -277,25 +285,66 @@ function ModuleMatrix() {
                                   className="module-checkbox"
                                 />
                                 {isSelected && (
-                                  <select
-                                    className="complexity-select"
-                                    value={moduleData.complexity || 'medium'}
-                                    onChange={(e) => updateModuleForEntity(entity.id, moduleKey, {
-                                      complexity: e.target.value
-                                    })}
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <option value="low">Low</option>
-                                    <option value="medium">Med</option>
-                                    <option value="high">High</option>
-                                  </select>
+                                  <>
+                                    <select
+                                      className="complexity-select"
+                                      value={moduleData.complexity || 'medium'}
+                                      onChange={(e) => updateModuleForEntity(entity.id, moduleKey, {
+                                        complexity: e.target.value
+                                      })}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <option value="low">Low</option>
+                                      <option value="medium">Med</option>
+                                      <option value="high">High</option>
+                                    </select>
+                                    <input
+                                      type="number"
+                                      className="entity-hours-input"
+                                      value={moduleData.customHours || moduleData.baseHours || subModule.baseHours}
+                                      onChange={(e) => updateModuleForEntity(entity.id, moduleKey, {
+                                        customHours: parseInt(e.target.value) || subModule.baseHours
+                                      })}
+                                      onClick={(e) => e.stopPropagation()}
+                                      title="Edit hours"
+                                    />
+                                    <span className="cell-hours-display">{entityHours}h</span>
+                                  </>
                                 )}
                               </div>
                             </td>
                           );
                         })}
                         <td className="sub-total-cell">
-                          {subTotal > 0 && `${Math.round(subTotal).toLocaleString()}h`}
+                          {subTotal > 0 ? (
+                            <input
+                              type="number"
+                              className="hours-input"
+                              value={Math.round(subTotal)}
+                              onChange={(e) => {
+                                const newTotal = parseInt(e.target.value) || 0;
+                                // Distribute the new total proportionally across entities
+                                if (subTotal > 0) {
+                                  activeEntities.forEach(entity => {
+                                    const data = getModuleData(entity.id, moduleId, subModule.id);
+                                    if (data.selected) {
+                                      const hours = data.customHours || data.baseHours || subModule.baseHours;
+                                      const multiplier = complexityMultipliers[data.complexity] || 1;
+                                      const entityHours = hours * multiplier;
+                                      const proportion = entityHours / subTotal;
+                                      const newHours = Math.round((newTotal * proportion) / multiplier);
+                                      const moduleKey = `${moduleId}_${subModule.id}`;
+                                      updateModuleForEntity(entity.id, moduleKey, {
+                                        customHours: newHours
+                                      });
+                                    }
+                                  });
+                                }
+                              }}
+                            />
+                          ) : (
+                            <span className="empty-hours">-</span>
+                          )}
                         </td>
                       </tr>
                     );

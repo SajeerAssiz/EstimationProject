@@ -251,6 +251,19 @@ function Integrations() {
                 </div>
                 <div className="item-controls">
                   <div className="control-group">
+                    <label>Qty</label>
+                    <input
+                      type="number"
+                      className="compact-input qty-input"
+                      min="1"
+                      value={integration.quantity || 1}
+                      onChange={(e) => handleUpdateIntegration(integration.id, {
+                        quantity: Math.max(1, parseInt(e.target.value) || 1)
+                      })}
+                      title="Number of instances (e.g., 3 banks, 2 terminals)"
+                    />
+                  </div>
+                  <div className="control-group">
                     <label>Complexity</label>
                     <select
                       value={integration.complexity}
@@ -265,7 +278,7 @@ function Integrations() {
                     </select>
                   </div>
                   <div className="control-group">
-                    <label>Hours</label>
+                    <label>Hours/Each</label>
                     <input
                       type="number"
                       className="compact-input"
@@ -277,11 +290,12 @@ function Integrations() {
                     />
                   </div>
                   <div className="control-group estimate">
-                    <label>Estimate</label>
+                    <label>Total</label>
                     <span className="estimate-value">
                       {Math.round(
                         (integration.customHours || integration.baseHours) *
-                        complexityMultipliers[integration.complexity]
+                        complexityMultipliers[integration.complexity] *
+                        (integration.quantity || 1)
                       )}h
                     </span>
                   </div>

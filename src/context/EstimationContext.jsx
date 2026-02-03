@@ -500,7 +500,8 @@ export function EstimationProvider({ children }) {
     return state.integrations.reduce((total, integration) => {
       const hours = integration.customHours || integration.baseHours;
       const multiplier = complexityMultipliers[integration.complexity] || 1;
-      return total + (hours * multiplier);
+      const quantity = integration.quantity || 1;
+      return total + (hours * multiplier * quantity);
     }, 0);
   }, [state.integrations]);
 

@@ -5614,3 +5614,88 @@ body {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* =====================================================
+   Module Matrix Hours Editing
+   ===================================================== */
+
+.module-matrix-table .hours-input {
+  width: 70px;
+  padding: 0.3rem 0.4rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  text-align: right;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--primary-color);
+  background: white;
+  transition: all 0.15s;
+}
+
+.module-matrix-table .hours-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.module-matrix-table .hours-input:hover {
+  border-color: var(--primary-color);
+}
+
+.module-matrix-table .empty-hours {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.module-matrix-table .module-total-hours {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.module-matrix-table .sub-total-cell {
+  text-align: center;
+  min-width: 90px;
+}
+
+/* Entity cell with hours input */
+.matrix-cell .cell-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.matrix-cell .entity-hours-input {
+  width: 60px;
+  padding: 0.2rem 0.3rem;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  text-align: center;
+  font-size: 0.75rem;
+  background: #f8f9fa;
+}
+
+.matrix-cell .entity-hours-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background: white;
+}
+
+.matrix-cell .cell-hours-display {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.15rem;
+}
+
+/* Integration Quantity Input */
+.selected-item .item-controls .qty-input {
+  width: 50px !important;
+  text-align: center;
+}
+
+.selected-item .item-controls .control-group label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
