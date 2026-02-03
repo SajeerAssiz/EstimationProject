@@ -7,13 +7,13 @@
 // See SETUP_WINDOWS.md for detailed instructions
 
 // Get config from environment variables or use defaults
-const clientId = import.meta.env.VITE_AZURE_CLIENT_ID || "YOUR_CLIENT_ID";
-const tenantId = import.meta.env.VITE_AZURE_TENANT_ID || "YOUR_TENANT_ID";
-const crmOrgUrl = import.meta.env.VITE_CRM_ORG_URL || "https://YOUR_CRM_ORG.crm.dynamics.com";
+const clientId = import.meta.env.VITE_AZURE_CLIENT_ID || "2171e05e-b5a3-4093-a342-0f602344344c";
+const tenantId = import.meta.env.VITE_AZURE_TENANT_ID || "ce5c9e34-9906-4081-8a98-69ec394244f1";
+const crmOrgUrl = import.meta.env.VITE_CRM_ORG_URL || "https://tscsalesbox.crm4.dynamics.com";
 
 // Check if Azure AD is configured
 export const isAzureADConfigured = () => {
-  return clientId !== "YOUR_CLIENT_ID" && tenantId !== "YOUR_TENANT_ID";
+  return clientId && clientId.length > 10 && tenantId && tenantId.length > 10;
 };
 
 export const msalConfig = {
