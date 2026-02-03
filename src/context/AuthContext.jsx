@@ -70,9 +70,8 @@ export function AuthProvider({ children }) {
 
     try {
       setError(null);
-      const response = await msalInstance.loginPopup(loginRequest);
-      setUser(response.account);
-      setIsAuthenticated(true);
+      // Use redirect instead of popup to avoid browser blocking
+      await msalInstance.loginRedirect(loginRequest);
     } catch (err) {
       console.error('Login error:', err);
       setError(err.message);
@@ -83,7 +82,8 @@ export function AuthProvider({ children }) {
     if (!msalInstance || !msalReady) return;
 
     try {
-      await msalInstance.logoutPopup();
+      // Use redirect for logout as well
+      await msalInstance.logoutRedirect();
       setUser(null);
       setIsAuthenticated(false);
     } catch (err) {
@@ -102,13 +102,13 @@ export function AuthProvider({ children }) {
       });
       return response.accessToken;
     } catch (err) {
-      // If silent acquisition fails, try popup
+      // If silent acquisition fails, use redirect
       try {
-        const response = await msalInstance.acquireTokenPopup({ scopes });
-        return response.accessToken;
-      } catch (popupErr) {
-        console.error('Token acquisition error:', popupErr);
-        setError(popupErr.message);
+        await msalInstance.acquireTokenRedirect({ scopes });
+        return null; // Will return after redirect
+      } catch (redirectErr) {
+        console.error('Token acquisition error:', redirectErr);
+        setError(redirectErr.message);
         return null;
       }
     }
