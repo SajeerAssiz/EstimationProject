@@ -1,37 +1,127 @@
-import React, { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useEstimation } from '../context/EstimationContext';
 
-// Default consultant types
-const defaultConsultantTypes = [
-  { id: 'pm', name: 'Project Manager', defaultLocation: 'onsite' },
-  { id: 'scm1', name: 'SCM Consultant', defaultLocation: 'onsite' },
-  { id: 'scm2', name: 'SCM Consultant', defaultLocation: 'onsite' },
-  { id: 'scm3', name: 'SCM Consultant', defaultLocation: 'offshore' },
-  { id: 'fin1', name: 'Finance Consultant', defaultLocation: 'onsite' },
-  { id: 'fin2', name: 'Finance Consultant', defaultLocation: 'onsite' },
-  { id: 'fin3', name: 'Finance Consultant', defaultLocation: 'offshore' },
-  { id: 'hr1', name: 'HR and Payroll Consultant', defaultLocation: 'onsite' },
-  { id: 'hr2', name: 'HR and Payroll Consultant', defaultLocation: 'offshore' },
-  { id: 'retail', name: 'Retail Consultant', defaultLocation: 'offshore' },
-  { id: 'tech1', name: 'Technical Consultant', defaultLocation: 'offshore' },
-  { id: 'tech2', name: 'Technical Consultant', defaultLocation: 'offshore' },
-  { id: 'tech3', name: 'Technical Consultant', defaultLocation: 'offshore' },
-  { id: 'tech4', name: 'Technical Consultant', defaultLocation: 'offshore' },
-  { id: 'tech5', name: 'Technical Consultant', defaultLocation: 'offshore' },
-  { id: 'bi1', name: 'BI Consultant', defaultLocation: 'offshore' },
-  { id: 'bi2', name: 'BI Consultant', defaultLocation: 'offshore' },
-  { id: 'infra', name: 'Infra Consultant', defaultLocation: 'offshore' },
+// Default consultant types with pre-populated data matching Excel format
+const getDefaultResources = () => [
+  { id: 'pm', name: 'Project Manager', phases: {
+    analysis: { location: 'onsite', days: 4 },
+    design_dev: { location: 'offshore', days: 5 },
+    deployment: { location: 'onsite', days: 5 },
+    operation: { location: 'onsite', days: 10 }
+  }},
+  { id: 'scm1', name: 'SCM Consultant', phases: {
+    analysis: { location: 'onsite', days: 4 },
+    design_dev: { location: 'offshore', days: 5 },
+    deployment: { location: 'onsite', days: 5 },
+    operation: { location: 'onsite', days: 9 }
+  }},
+  { id: 'scm2', name: 'SCM Consultant', phases: {
+    analysis: { location: 'onsite', days: 4 },
+    design_dev: { location: 'offshore', days: 5 },
+    deployment: { location: 'onsite', days: 5 },
+    operation: { location: 'onsite', days: 9 }
+  }},
+  { id: 'scm3', name: 'SCM Consultant', phases: {
+    analysis: { location: 'offshore', days: 0 },
+    design_dev: { location: 'offshore', days: 0 },
+    deployment: { location: 'offshore', days: 2 },
+    operation: { location: 'offshore', days: 1 }
+  }},
+  { id: 'fin1', name: 'Finance Consultant', phases: {
+    analysis: { location: 'onsite', days: 4 },
+    design_dev: { location: 'offshore', days: 5 },
+    deployment: { location: 'onsite', days: 5 },
+    operation: { location: 'onsite', days: 9 }
+  }},
+  { id: 'fin2', name: 'Finance Consultant', phases: {
+    analysis: { location: 'onsite', days: 4 },
+    design_dev: { location: 'offshore', days: 5 },
+    deployment: { location: 'onsite', days: 5 },
+    operation: { location: 'onsite', days: 9 }
+  }},
+  { id: 'fin3', name: 'Finance Consultant', phases: {
+    analysis: { location: 'offshore', days: 0 },
+    design_dev: { location: 'offshore', days: 0 },
+    deployment: { location: 'offshore', days: 2 },
+    operation: { location: 'offshore', days: 1 }
+  }},
+  { id: 'hr1', name: 'HR and Payroll Consultant', phases: {
+    analysis: { location: 'onsite', days: 4 },
+    design_dev: { location: 'offshore', days: 2 },
+    deployment: { location: 'onsite', days: 5 },
+    operation: { location: 'onsite', days: 9 }
+  }},
+  { id: 'hr2', name: 'HR and Payroll Consultant', phases: {
+    analysis: { location: 'offshore', days: 0 },
+    design_dev: { location: 'offshore', days: 0 },
+    deployment: { location: 'offshore', days: 0 },
+    operation: { location: 'offshore', days: 0 }
+  }},
+  { id: 'retail', name: 'Retail Consultant', phases: {
+    analysis: { location: 'offshore', days: 1 },
+    design_dev: { location: 'offshore', days: 1 },
+    deployment: { location: 'onsite', days: 1 },
+    operation: { location: 'onsite', days: 1 }
+  }},
+  { id: 'tech1', name: 'Technical Consultant', phases: {
+    analysis: { location: 'offshore', days: 0 },
+    design_dev: { location: 'offshore', days: 5 },
+    deployment: { location: 'offshore', days: 0 },
+    operation: { location: 'offshore', days: 0 }
+  }},
+  { id: 'tech2', name: 'Technical Consultant', phases: {
+    analysis: { location: 'offshore', days: 0 },
+    design_dev: { location: 'offshore', days: 5 },
+    deployment: { location: 'offshore', days: 0 },
+    operation: { location: 'offshore', days: 0 }
+  }},
+  { id: 'tech3', name: 'Technical Consultant', phases: {
+    analysis: { location: 'offshore', days: 0 },
+    design_dev: { location: 'offshore', days: 5 },
+    deployment: { location: 'offshore', days: 0 },
+    operation: { location: 'offshore', days: 0 }
+  }},
+  { id: 'tech4', name: 'Technical Consultant', phases: {
+    analysis: { location: 'offshore', days: 0 },
+    design_dev: { location: 'offshore', days: 5 },
+    deployment: { location: 'offshore', days: 0 },
+    operation: { location: 'offshore', days: 0 }
+  }},
+  { id: 'tech5', name: 'Technical Consultant', phases: {
+    analysis: { location: 'offshore', days: 0 },
+    design_dev: { location: 'offshore', days: 5 },
+    deployment: { location: 'offshore', days: 0 },
+    operation: { location: 'offshore', days: 0 }
+  }},
+  { id: 'bi1', name: 'BI Consultant', phases: {
+    analysis: { location: 'offshore', days: 0 },
+    design_dev: { location: 'offshore', days: 5 },
+    deployment: { location: 'offshore', days: 0 },
+    operation: { location: 'offshore', days: 0 }
+  }},
+  { id: 'bi2', name: 'BI Consultant', phases: {
+    analysis: { location: 'offshore', days: 0 },
+    design_dev: { location: 'offshore', days: 5 },
+    deployment: { location: 'offshore', days: 0 },
+    operation: { location: 'offshore', days: 0 }
+  }},
+  { id: 'infra', name: 'Infra Consultant', phases: {
+    analysis: { location: 'offshore', days: 0 },
+    design_dev: { location: 'offshore', days: 0.5 },
+    deployment: { location: 'offshore', days: 0 },
+    operation: { location: 'offshore', days: 0 }
+  }},
 ];
 
-// Project phases for resource loading
-const projectPhases = [
-  { id: 'analysis', name: 'Analysis', months: 2 },
-  { id: 'design_dev', name: 'Design & Development', months: 5 },
-  { id: 'deployment', name: 'Deployment', months: 3 },
-  { id: 'operation', name: 'Operation', months: 3 },
+// Default project phases
+const defaultPhases = [
+  { id: 'analysis', name: 'Analysis', months: 0 },
+  { id: 'design_dev', name: 'Design & Development', months: 0 },
+  { id: 'deployment', name: 'Deployment', months: 0 },
+  { id: 'operation', name: 'Operation', months: 0 },
 ];
 
-// Default rates
+// Default daily rates (USD)
 const defaultRates = {
   onsite: {
     'Project Manager': 1500,
@@ -59,6 +149,7 @@ function ResourceLoading() {
   const { state, dispatch } = useEstimation();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRatesModal, setShowRatesModal] = useState(false);
+  const [showEstimationSummary, setShowEstimationSummary] = useState(true);
   const [newResource, setNewResource] = useState({
     name: '',
     defaultLocation: 'offshore',
@@ -66,23 +157,76 @@ function ResourceLoading() {
 
   // Initialize resource data from state or defaults
   const resourceData = state.resourceLoading || {
-    resources: defaultConsultantTypes.map(c => ({
-      ...c,
-      phases: projectPhases.reduce((acc, phase) => {
-        acc[phase.id] = {
-          location: c.defaultLocation,
-          days: 0,
-        };
-        return acc;
-      }, {}),
-    })),
+    resources: getDefaultResources(),
     rates: defaultRates,
-    phases: projectPhases,
+    phases: defaultPhases,
   };
 
-  const resources = resourceData.resources || [];
+  const resources = resourceData.resources || getDefaultResources();
   const rates = resourceData.rates || defaultRates;
-  const phases = resourceData.phases || projectPhases;
+  const phases = resourceData.phases || defaultPhases;
+
+  // Calculate estimation hours from other sections
+  const estimationSummary = useMemo(() => {
+    const moduleHours = state.selectedModules?.reduce((sum, m) => {
+      const multiplier = { low: 1, medium: 1.3, high: 1.6 }[m.complexity] || 1;
+      return sum + ((m.customHours || m.baseHours || 0) * multiplier);
+    }, 0) || 0;
+
+    const integrationHours = state.integrations?.reduce((sum, i) => {
+      const multiplier = { low: 1, medium: 1.3, high: 1.6 }[i.complexity] || 1;
+      return sum + ((i.customHours || i.baseHours || 0) * multiplier);
+    }, 0) || 0;
+
+    const reportHours = state.reports?.reduce((sum, r) => {
+      return sum + ((r.customHours || r.baseHours || 0) * (r.quantity || 1));
+    }, 0) || 0;
+
+    const biHours = state.biDashboards?.reduce((sum, b) => {
+      const multiplier = { low: 1, medium: 1.3, high: 1.6 }[b.complexity] || 1;
+      return sum + ((b.customHours || b.baseHours || 0) * multiplier);
+    }, 0) || 0;
+
+    const addonHours = state.addons?.reduce((sum, a) => {
+      return sum + (a.customHours || a.baseHours || 0);
+    }, 0) || 0;
+
+    const customHours = state.customItems?.reduce((sum, c) => {
+      return sum + (c.hours || 0);
+    }, 0) || 0;
+
+    const dataMigrationHours = state.dataMigration?.reduce((sum, d) => {
+      const multiplier = { low: 1, medium: 1.3, high: 1.6 }[d.complexity] || 1;
+      return sum + ((d.customHours || d.baseHours || 0) * multiplier);
+    }, 0) || 0;
+
+    const documentFormatHours = state.documentFormats?.reduce((sum, d) => {
+      return sum + (d.hours || 0);
+    }, 0) || 0;
+
+    const subtotal = moduleHours + integrationHours + reportHours + biHours +
+                     addonHours + customHours + dataMigrationHours + documentFormatHours;
+
+    const contingencyPercent = state.projectInfo?.contingencyPercent || 15;
+    const contingencyHours = subtotal * (contingencyPercent / 100);
+    const totalHours = subtotal + contingencyHours;
+
+    return {
+      moduleHours: Math.round(moduleHours),
+      integrationHours: Math.round(integrationHours),
+      reportHours: Math.round(reportHours),
+      biHours: Math.round(biHours),
+      addonHours: Math.round(addonHours),
+      customHours: Math.round(customHours),
+      dataMigrationHours: Math.round(dataMigrationHours),
+      documentFormatHours: Math.round(documentFormatHours),
+      subtotal: Math.round(subtotal),
+      contingencyPercent,
+      contingencyHours: Math.round(contingencyHours),
+      totalHours: Math.round(totalHours),
+      totalDays: Math.round(totalHours / 8),
+    };
+  }, [state]);
 
   // Calculate cost for a resource/phase
   const calculateCost = (resource, phaseId) => {
@@ -118,23 +262,42 @@ function ResourceLoading() {
     return { days: totalDays, cost: totalCost };
   };
 
-  // Grand totals
-  const grandTotals = {
-    days: resources.reduce((total, r) => total + getTotalDays(r), 0),
-    cost: resources.reduce((total, r) => total + getTotalCost(r), 0),
-    onsiteDays: resources.reduce((total, r) => {
-      return total + phases.reduce((pTotal, phase) => {
+  // Grand totals - computed directly without useMemo to avoid dependency issues
+  const grandTotals = (() => {
+    const totals = {
+      days: 0,
+      cost: 0,
+      onsiteDays: 0,
+      offshoreDays: 0,
+      onsiteCost: 0,
+      offshoreCost: 0,
+    };
+
+    resources.forEach(r => {
+      phases.forEach(phase => {
         const pd = r.phases?.[phase.id];
-        return pTotal + (pd?.location === 'onsite' ? pd.days || 0 : 0);
-      }, 0);
-    }, 0),
-    offshoreDays: resources.reduce((total, r) => {
-      return total + phases.reduce((pTotal, phase) => {
-        const pd = r.phases?.[phase.id];
-        return pTotal + (pd?.location === 'offshore' ? pd.days || 0 : 0);
-      }, 0);
-    }, 0),
-  };
+        if (pd) {
+          const days = pd.days || 0;
+          const location = pd.location || 'offshore';
+          const rate = rates[location]?.[r.name] || 500;
+          const cost = days * rate;
+
+          totals.days += days;
+          totals.cost += cost;
+
+          if (pd.location === 'onsite') {
+            totals.onsiteDays += days;
+            totals.onsiteCost += cost;
+          } else {
+            totals.offshoreDays += days;
+            totals.offshoreCost += cost;
+          }
+        }
+      });
+    });
+
+    return totals;
+  })();
 
   // Update resource data
   const updateResourceData = (newData) => {
@@ -161,6 +324,17 @@ function ResourceLoading() {
     updateResourceData({ resources: newResources });
   };
 
+  // Update phase months
+  const updatePhaseMonths = (phaseId, months) => {
+    const newPhases = phases.map(p => {
+      if (p.id === phaseId) {
+        return { ...p, months: parseFloat(months) || 0 };
+      }
+      return p;
+    });
+    updateResourceData({ phases: newPhases });
+  };
+
   // Add new resource
   const handleAddResource = () => {
     if (!newResource.name.trim()) return;
@@ -169,7 +343,6 @@ function ResourceLoading() {
     const newResourceItem = {
       id: newId,
       name: newResource.name,
-      defaultLocation: newResource.defaultLocation,
       phases: phases.reduce((acc, phase) => {
         acc[phase.id] = {
           location: newResource.defaultLocation,
@@ -217,10 +390,10 @@ function ResourceLoading() {
   };
 
   return (
-    <div className="section resource-loading-modern">
+    <div className="section resource-loading-section">
       <div className="section-header">
         <div className="header-title">
-          <h2>Resource Loading & Costing</h2>
+          <h2>Resource Loading</h2>
           <p className="section-subtitle">Plan consultant allocation across project phases</p>
         </div>
         <div className="header-stats">
@@ -229,7 +402,7 @@ function ResourceLoading() {
             <span className="stat-text">Resources</span>
           </div>
           <div className="stat-pill">
-            <span className="stat-number">{grandTotals.days}</span>
+            <span className="stat-number">{grandTotals.days.toFixed(1)}</span>
             <span className="stat-text">Total Days</span>
           </div>
           <div className="stat-pill primary">
@@ -239,77 +412,158 @@ function ResourceLoading() {
         </div>
       </div>
 
+      {/* Estimation Summary Panel */}
+      <div className="estimation-summary-panel">
+        <div className="panel-header" onClick={() => setShowEstimationSummary(!showEstimationSummary)}>
+          <h4>Estimation Summary (Hours)</h4>
+          <span className="toggle-icon">{showEstimationSummary ? '▼' : '▶'}</span>
+        </div>
+        {showEstimationSummary && (
+          <div className="panel-content">
+            <div className="estimation-grid">
+              <div className="est-item">
+                <span className="est-label">Modules</span>
+                <span className="est-value">{estimationSummary.moduleHours} hrs</span>
+              </div>
+              <div className="est-item">
+                <span className="est-label">Integrations</span>
+                <span className="est-value">{estimationSummary.integrationHours} hrs</span>
+              </div>
+              <div className="est-item">
+                <span className="est-label">Reports</span>
+                <span className="est-value">{estimationSummary.reportHours} hrs</span>
+              </div>
+              <div className="est-item">
+                <span className="est-label">BI Dashboards</span>
+                <span className="est-value">{estimationSummary.biHours} hrs</span>
+              </div>
+              <div className="est-item">
+                <span className="est-label">Data Migration</span>
+                <span className="est-value">{estimationSummary.dataMigrationHours} hrs</span>
+              </div>
+              <div className="est-item">
+                <span className="est-label">Document Formats</span>
+                <span className="est-value">{estimationSummary.documentFormatHours} hrs</span>
+              </div>
+              <div className="est-item">
+                <span className="est-label">Add-ons</span>
+                <span className="est-value">{estimationSummary.addonHours} hrs</span>
+              </div>
+              <div className="est-item">
+                <span className="est-label">Custom Items</span>
+                <span className="est-value">{estimationSummary.customHours} hrs</span>
+              </div>
+            </div>
+            <div className="estimation-totals">
+              <div className="total-row">
+                <span>Subtotal:</span>
+                <span>{estimationSummary.subtotal} hours</span>
+              </div>
+              <div className="total-row">
+                <span>Contingency ({estimationSummary.contingencyPercent}%):</span>
+                <span>{estimationSummary.contingencyHours} hours</span>
+              </div>
+              <div className="total-row grand-total">
+                <span>Total Estimated:</span>
+                <span>{estimationSummary.totalHours} hours ({estimationSummary.totalDays} days)</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Summary Cards */}
       <div className="resource-summary-grid">
         <div className="resource-summary-card">
-          <div className="summary-label">Onsite Days</div>
-          <div className="summary-value">{grandTotals.onsiteDays}</div>
-          <div className="summary-unit">days</div>
+          <div className="summary-icon">🏢</div>
+          <div className="summary-content">
+            <div className="summary-value">{grandTotals.onsiteDays.toFixed(1)}</div>
+            <div className="summary-label">Onsite Days</div>
+            <div className="summary-cost">{formatCurrency(grandTotals.onsiteCost)}</div>
+          </div>
         </div>
         <div className="resource-summary-card">
-          <div className="summary-label">Offshore Days</div>
-          <div className="summary-value">{grandTotals.offshoreDays}</div>
-          <div className="summary-unit">days</div>
+          <div className="summary-icon">🌐</div>
+          <div className="summary-content">
+            <div className="summary-value">{grandTotals.offshoreDays.toFixed(1)}</div>
+            <div className="summary-label">Offshore Days</div>
+            <div className="summary-cost">{formatCurrency(grandTotals.offshoreCost)}</div>
+          </div>
         </div>
         <div className="resource-summary-card">
-          <div className="summary-label">Total Man-Days</div>
-          <div className="summary-value">{grandTotals.days}</div>
-          <div className="summary-unit">days</div>
+          <div className="summary-icon">📊</div>
+          <div className="summary-content">
+            <div className="summary-value">{grandTotals.days.toFixed(1)}</div>
+            <div className="summary-label">Total Man-Days</div>
+            <div className="summary-cost">{(grandTotals.days * 8).toFixed(0)} hours</div>
+          </div>
         </div>
         <div className="resource-summary-card highlight">
-          <div className="summary-label">Total Project Cost</div>
-          <div className="summary-value">{formatCurrency(grandTotals.cost)}</div>
-          <div className="summary-unit">{state.projectInfo?.currency || 'USD'}</div>
+          <div className="summary-icon">💰</div>
+          <div className="summary-content">
+            <div className="summary-value">{formatCurrency(grandTotals.cost)}</div>
+            <div className="summary-label">Total Project Cost</div>
+            <div className="summary-cost">{state.projectInfo?.currency || 'USD'}</div>
+          </div>
         </div>
       </div>
 
       {/* Action Buttons */}
       <div className="resource-actions">
-        <button className="add-resource-btn" onClick={() => setShowAddModal(true)}>
-          ➕ Add Resource
+        <button className="btn-action" onClick={() => setShowAddModal(true)}>
+          + Add Resource
         </button>
-        <button className="add-resource-btn" onClick={() => setShowRatesModal(true)} style={{ background: '#6c757d' }}>
-          💰 Edit Rates
+        <button className="btn-action secondary" onClick={() => setShowRatesModal(true)}>
+          Edit Rates
         </button>
       </div>
 
       {/* Resource Loading Table */}
-      <div className="resource-table-container">
-        <table className="resource-table">
+      <div className="resource-table-wrapper">
+        <table className="resource-loading-table">
           <thead>
-            <tr>
-              <th rowSpan="2" style={{ background: '#365f3b', textAlign: 'left', paddingLeft: '1rem' }}>
-                Consultant Type
-              </th>
+            <tr className="header-row-1">
+              <th rowSpan="2" className="consultant-header">Consultant Type</th>
               {phases.map(phase => (
                 <th key={phase.id} colSpan="3" className="phase-header">
-                  {phase.name} ({phase.months}M)
+                  <div className="phase-name">{phase.name}</div>
+                  <div className="phase-months">
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={phase.months || ''}
+                      onChange={(e) => updatePhaseMonths(phase.id, e.target.value)}
+                      placeholder="0"
+                    />
+                    <span>Months</span>
+                  </div>
                 </th>
               ))}
-              <th rowSpan="2" style={{ background: '#365f3b' }}>Total Days</th>
-              <th rowSpan="2" style={{ background: '#365f3b' }}>Total Cost</th>
-              <th rowSpan="2" style={{ background: '#365f3b', width: '40px' }}></th>
+              <th rowSpan="2" className="total-header">Total<br/>Days</th>
+              <th rowSpan="2" className="total-header">Total<br/>Cost</th>
+              <th rowSpan="2" className="action-header"></th>
             </tr>
-            <tr>
+            <tr className="header-row-2">
               {phases.map(phase => (
-                <React.Fragment key={`header-${phase.id}`}>
-                  <th>Location</th>
-                  <th>Days</th>
-                  <th>Cost</th>
+                <React.Fragment key={`sub-${phase.id}`}>
+                  <th className="sub-header">Onsite/Off SI</th>
+                  <th className="sub-header">Days</th>
+                  <th className="sub-header">USD Cost</th>
                 </React.Fragment>
               ))}
             </tr>
           </thead>
           <tbody>
-            {resources.map((resource) => (
-              <tr key={resource.id}>
-                <td className="consultant-type-cell">{resource.name}</td>
+            {resources.map((resource, idx) => (
+              <tr key={resource.id} className={idx % 2 === 0 ? 'row-even' : 'row-odd'}>
+                <td className="consultant-cell">{resource.name}</td>
                 {phases.map(phase => {
                   const phaseData = resource.phases?.[phase.id] || {};
                   const cost = calculateCost(resource, phase.id);
                   return (
                     <React.Fragment key={`${resource.id}-${phase.id}`}>
-                      <td>
+                      <td className="location-cell">
                         <select
                           className="location-select"
                           value={phaseData.location || 'offshore'}
@@ -319,29 +573,30 @@ function ResourceLoading() {
                           <option value="offshore">Off Shore</option>
                         </select>
                       </td>
-                      <td>
+                      <td className="days-cell">
                         <input
                           type="number"
                           className="days-input"
                           min="0"
+                          step="0.5"
                           value={phaseData.days || ''}
                           onChange={(e) => updateResourcePhase(resource.id, phase.id, {
-                            days: parseInt(e.target.value) || 0
+                            days: parseFloat(e.target.value) || 0
                           })}
                           placeholder="0"
                         />
                       </td>
                       <td className="cost-cell">
-                        {cost > 0 ? formatCurrency(cost) : '-'}
+                        {cost > 0 ? formatCurrency(cost) : '0'}
                       </td>
                     </React.Fragment>
                   );
                 })}
-                <td style={{ fontWeight: 600 }}>{getTotalDays(resource)}</td>
-                <td className="cost-cell">{formatCurrency(getTotalCost(resource))}</td>
-                <td>
+                <td className="total-days-cell">{getTotalDays(resource).toFixed(1)}</td>
+                <td className="total-cost-cell">{formatCurrency(getTotalCost(resource))}</td>
+                <td className="action-cell">
                   <button
-                    className="remove-btn"
+                    className="btn-remove"
                     onClick={() => handleRemoveResource(resource.id)}
                     title="Remove"
                   >
@@ -352,55 +607,60 @@ function ResourceLoading() {
             ))}
 
             {/* Phase Totals Row */}
-            <tr className="total-row">
-              <td className="consultant-type-cell">Phase Totals</td>
+            <tr className="totals-row">
+              <td className="consultant-cell totals-label">Phase Totals</td>
               {phases.map(phase => {
                 const totals = getPhaseTotals(phase.id);
                 return (
                   <React.Fragment key={`total-${phase.id}`}>
-                    <td></td>
-                    <td style={{ fontWeight: 700 }}>{totals.days}</td>
-                    <td className="cost-cell">{formatCurrency(totals.cost)}</td>
+                    <td className="location-cell"></td>
+                    <td className="days-cell total-value">{totals.days.toFixed(1)}</td>
+                    <td className="cost-cell total-value">{formatCurrency(totals.cost)}</td>
                   </React.Fragment>
                 );
               })}
-              <td style={{ fontWeight: 700 }}>{grandTotals.days}</td>
-              <td className="cost-cell">{formatCurrency(grandTotals.cost)}</td>
-              <td></td>
+              <td className="total-days-cell grand-value">{grandTotals.days.toFixed(1)}</td>
+              <td className="total-cost-cell grand-value">{formatCurrency(grandTotals.cost)}</td>
+              <td className="action-cell"></td>
             </tr>
           </tbody>
         </table>
       </div>
 
       {/* Rate Card Section */}
-      <div className="rate-card-section">
-        <h4>💰 Daily Rate Card ({state.projectInfo?.currency || 'USD'})</h4>
-        <div className="rate-card-grid">
-          {uniqueRoles.map(role => (
-            <div key={role} className="rate-card-item">
-              <span className="role-name">{role}</span>
-              <div className="rate-inputs">
-                <div>
-                  <span className="rate-label">Onsite</span>
-                  <input
-                    type="number"
-                    className="rate-input"
-                    value={rates.onsite?.[role] || ''}
-                    onChange={(e) => updateRate('onsite', role, e.target.value)}
-                  />
-                </div>
-                <div>
-                  <span className="rate-label">Offshore</span>
-                  <input
-                    type="number"
-                    className="rate-input"
-                    value={rates.offshore?.[role] || ''}
-                    onChange={(e) => updateRate('offshore', role, e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
+      <div className="rate-card-panel">
+        <h4>Daily Rate Card ({state.projectInfo?.currency || 'USD'})</h4>
+        <div className="rate-card-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Onsite Rate</th>
+                <th>Offshore Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {uniqueRoles.map(role => (
+                <tr key={role}>
+                  <td>{role}</td>
+                  <td>
+                    <input
+                      type="number"
+                      value={rates.onsite?.[role] || ''}
+                      onChange={(e) => updateRate('onsite', role, e.target.value)}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      value={rates.offshore?.[role] || ''}
+                      onChange={(e) => updateRate('offshore', role, e.target.value)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -454,32 +714,28 @@ function ResourceLoading() {
               <button className="modal-close" onClick={() => setShowRatesModal(false)}>×</button>
             </div>
             <div className="modal-body">
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table className="rates-modal-table">
                 <thead>
                   <tr>
-                    <th style={{ textAlign: 'left', padding: '0.75rem', borderBottom: '2px solid var(--border-color)' }}>Role</th>
-                    <th style={{ padding: '0.75rem', borderBottom: '2px solid var(--border-color)' }}>Onsite Rate</th>
-                    <th style={{ padding: '0.75rem', borderBottom: '2px solid var(--border-color)' }}>Offshore Rate</th>
+                    <th>Role</th>
+                    <th>Onsite Rate</th>
+                    <th>Offshore Rate</th>
                   </tr>
                 </thead>
                 <tbody>
                   {uniqueRoles.map(role => (
                     <tr key={role}>
-                      <td style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border-color)' }}>{role}</td>
-                      <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--border-color)', textAlign: 'center' }}>
+                      <td>{role}</td>
+                      <td>
                         <input
                           type="number"
-                          className="compact-input"
-                          style={{ width: '100px' }}
                           value={rates.onsite?.[role] || ''}
                           onChange={(e) => updateRate('onsite', role, e.target.value)}
                         />
                       </td>
-                      <td style={{ padding: '0.5rem', borderBottom: '1px solid var(--border-color)', textAlign: 'center' }}>
+                      <td>
                         <input
                           type="number"
-                          className="compact-input"
-                          style={{ width: '100px' }}
                           value={rates.offshore?.[role] || ''}
                           onChange={(e) => updateRate('offshore', role, e.target.value)}
                         />

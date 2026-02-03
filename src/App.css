@@ -5154,3 +5154,463 @@ body {
     padding: 0 1rem;
   }
 }
+
+/* =====================================================
+   Resource Loading Section - Updated Styles
+   ===================================================== */
+
+.resource-loading-section {
+  padding: 1.5rem;
+}
+
+/* Estimation Summary Panel */
+.estimation-summary-panel {
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.estimation-summary-panel .panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  cursor: pointer;
+  user-select: none;
+}
+
+.estimation-summary-panel .panel-header:hover {
+  background: linear-gradient(135deg, #e9ecef, #dee2e6);
+}
+
+.estimation-summary-panel .panel-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+.estimation-summary-panel .toggle-icon {
+  color: var(--text-secondary);
+}
+
+.estimation-summary-panel .panel-content {
+  padding: 1.25rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.estimation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.est-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-color);
+  border-radius: var(--radius-sm);
+}
+
+.est-item .est-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.est-item .est-value {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.estimation-totals {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.estimation-totals .total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.estimation-totals .grand-total {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--primary-color);
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
+  margin-top: 0.5rem;
+}
+
+/* Updated Resource Summary Cards */
+.resource-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.resource-summary-card {
+  background: white;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.resource-summary-card .summary-icon {
+  font-size: 2rem;
+}
+
+.resource-summary-card .summary-content {
+  flex: 1;
+}
+
+.resource-summary-card .summary-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.resource-summary-card .summary-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.resource-summary-card .summary-cost {
+  font-size: 0.85rem;
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.resource-summary-card.highlight {
+  background: linear-gradient(135deg, #365f3b, #2d4f32);
+  color: white;
+  border: none;
+}
+
+.resource-summary-card.highlight .summary-value,
+.resource-summary-card.highlight .summary-label,
+.resource-summary-card.highlight .summary-cost {
+  color: white;
+}
+
+.resource-summary-card.highlight .summary-label {
+  opacity: 0.85;
+}
+
+/* Action Buttons */
+.resource-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-action {
+  padding: 0.6rem 1.25rem;
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-action:hover {
+  background: var(--primary-dark);
+}
+
+.btn-action.secondary {
+  background: #6c757d;
+}
+
+.btn-action.secondary:hover {
+  background: #5a6268;
+}
+
+/* Resource Loading Table */
+.resource-table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 1.5rem;
+  border: 1px solid #365f3b;
+  border-radius: var(--radius-md);
+}
+
+.resource-loading-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  min-width: 1200px;
+}
+
+.resource-loading-table th {
+  background: #365f3b;
+  color: white;
+  font-weight: 500;
+  padding: 0.5rem;
+  border: 1px solid #2d4f32;
+  text-align: center;
+}
+
+.resource-loading-table .consultant-header {
+  text-align: left;
+  padding-left: 1rem;
+  min-width: 180px;
+  background: #365f3b;
+}
+
+.resource-loading-table .phase-header {
+  min-width: 200px;
+}
+
+.resource-loading-table .phase-header .phase-name {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.resource-loading-table .phase-header .phase-months {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: normal;
+}
+
+.resource-loading-table .phase-header .phase-months input {
+  width: 40px;
+  padding: 0.15rem 0.25rem;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 3px;
+  text-align: center;
+  font-size: 0.75rem;
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.resource-loading-table .phase-header .phase-months input::placeholder {
+  color: rgba(255,255,255,0.5);
+}
+
+.resource-loading-table .sub-header {
+  background: #4a7850;
+  font-size: 0.75rem;
+  font-weight: 400;
+  padding: 0.4rem;
+}
+
+.resource-loading-table .total-header {
+  background: #365f3b;
+  min-width: 80px;
+}
+
+.resource-loading-table .action-header {
+  background: #365f3b;
+  width: 40px;
+}
+
+.resource-loading-table tbody tr {
+  transition: background 0.15s;
+}
+
+.resource-loading-table tbody tr:hover {
+  background: rgba(54, 95, 59, 0.05);
+}
+
+.resource-loading-table tbody td {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.resource-loading-table .row-even {
+  background: white;
+}
+
+.resource-loading-table .row-odd {
+  background: #f8f9fa;
+}
+
+.resource-loading-table .consultant-cell {
+  text-align: left;
+  padding-left: 1rem;
+  font-weight: 500;
+  background: inherit;
+}
+
+.resource-loading-table .location-cell {
+  min-width: 80px;
+}
+
+.resource-loading-table .location-select {
+  width: 100%;
+  padding: 0.3rem;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  font-size: 0.8rem;
+  background: white;
+}
+
+.resource-loading-table .days-cell {
+  min-width: 60px;
+}
+
+.resource-loading-table .days-input {
+  width: 50px;
+  padding: 0.3rem;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.resource-loading-table .cost-cell {
+  min-width: 80px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.resource-loading-table .total-days-cell,
+.resource-loading-table .total-cost-cell {
+  font-weight: 600;
+  background: #f0f7f1;
+}
+
+.resource-loading-table .action-cell {
+  padding: 0;
+}
+
+.resource-loading-table .btn-remove {
+  background: none;
+  border: none;
+  color: var(--danger-color);
+  cursor: pointer;
+  font-size: 1.25rem;
+  padding: 0.25rem 0.5rem;
+  transition: all 0.15s;
+}
+
+.resource-loading-table .btn-remove:hover {
+  background: var(--danger-color);
+  color: white;
+}
+
+.resource-loading-table .totals-row {
+  background: #e8f0e9 !important;
+  font-weight: 600;
+}
+
+.resource-loading-table .totals-row td {
+  border-top: 2px solid #365f3b;
+}
+
+.resource-loading-table .totals-label {
+  font-weight: 700;
+  color: #365f3b;
+}
+
+.resource-loading-table .total-value {
+  font-weight: 700;
+  color: #365f3b;
+}
+
+.resource-loading-table .grand-value {
+  font-weight: 700;
+  background: #d4e6d6 !important;
+  color: #2d4f32;
+}
+
+/* Rate Card Panel */
+.rate-card-panel {
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  padding: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.rate-card-panel h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+.rate-card-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.rate-card-table th {
+  text-align: left;
+  padding: 0.75rem;
+  background: var(--bg-color);
+  border-bottom: 2px solid var(--border-color);
+  font-weight: 500;
+}
+
+.rate-card-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rate-card-table input {
+  width: 100px;
+  padding: 0.4rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
+/* Rates Modal Table */
+.rates-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rates-modal-table th {
+  text-align: left;
+  padding: 0.75rem;
+  background: var(--bg-color);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.rates-modal-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.rates-modal-table input {
+  width: 120px;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .resource-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .resource-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .estimation-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
