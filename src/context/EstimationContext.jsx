@@ -21,6 +21,7 @@ const getInitialState = () => ({
   },
   legalEntities: [],
   moduleMatrix: {}, // { entityId: { moduleKey: { selected: true, complexity: 'medium', hours: 0 } } }
+  baseHoursOverrides: {}, // { moduleKey: hours } - overrides for default base hours
   selectedModules: [],
   integrations: [],
   reports: [],
@@ -343,6 +344,16 @@ function estimationReducer(state, action) {
       return {
         ...state,
         resourceLoading: action.payload
+      };
+
+    // Base Hours Override Actions
+    case 'UPDATE_BASE_HOURS_OVERRIDE':
+      return {
+        ...state,
+        baseHoursOverrides: {
+          ...state.baseHoursOverrides,
+          [action.payload.moduleKey]: action.payload.hours
+        }
       };
 
     // WBS Project Plan Actions

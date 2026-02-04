@@ -21,6 +21,29 @@ function ModuleMatrix() {
 
   const legalEntities = state.legalEntities || [];
   const moduleMatrix = state.moduleMatrix || {};
+  const baseHoursOverrides = state.baseHoursOverrides || {};
+
+  // Get base hours override for a module
+  const getBaseHoursOverride = (moduleId, subModuleId) => {
+    const key = `${moduleId}_${subModuleId}`;
+    return baseHoursOverrides[key];
+  };
+
+  // Update base hours override
+  const updateBaseHours = (moduleId, subModuleId, hours) => {
+    dispatch({
+      type: 'UPDATE_BASE_HOURS_OVERRIDE',
+      payload: {
+        moduleKey: `${moduleId}_${subModuleId}`,
+        hours
+      }
+    });
+  };
+
+  // Get effective base hours (override or default)
+  const getEffectiveBaseHours = (moduleId, subModuleId, defaultHours) => {
+    return getBaseHoursOverride(moduleId, subModuleId) || defaultHours;
+  };
 
   if (legalEntities.length === 0) {
     return (
@@ -264,7 +287,16 @@ function ModuleMatrix() {
                       <tr key={`${moduleId}_${subModule.id}`} className="sub-module-row">
                         <td className="sub-module-cell">
                           <span className="sub-module-name">{subModule.name}</span>
-                          <span className="sub-module-base">{subModule.baseHours}h base</span>
+                          <div className="sub-module-base-edit">
+                            <input
+                              type="number"
+                              className="base-hours-input"
+                              value={getBaseHoursOverride(moduleId, subModule.id) || subModule.baseHours}
+                              onChange={(e) => updateBaseHours(moduleId, subModule.id, parseInt(e.target.value) || subModule.baseHours)}
+                              title="Edit base hours"
+                            />
+                            <span className="base-label">h base</span>
+                          </div>
                         </td>
                         {activeEntities.map(entity => {
                           const isSelected = isModuleSelected(entity.id, moduleId, subModule.id);
